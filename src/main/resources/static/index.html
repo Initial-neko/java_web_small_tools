@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Toolbox - 本地工具集</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: #f5f6fa; color: #2c3e50; }
+  .app { display: flex; height: 100vh; }
+
+  /* 侧边栏 */
+  .sidebar { width: 220px; background: #2c3e50; color: #ecf0f1; padding: 20px 0; flex-shrink: 0; }
+  .sidebar h1 { font-size: 18px; padding: 0 20px 20px; border-bottom: 1px solid #34495e; margin-bottom: 10px; }
+  .tool-item { padding: 12px 20px; cursor: pointer; transition: background 0.15s; font-size: 14px; }
+  .tool-item:hover { background: #34495e; }
+  .tool-item.active { background: #3498db; }
+  .tool-item .desc { font-size: 11px; color: #95a5a6; margin-top: 2px; }
+  .tool-item.active .desc { color: #d6eaf8; }
+
+  /* 主内容 */
+  .main { flex: 1; padding: 30px; overflow-y: auto; }
+  .main h2 { font-size: 22px; margin-bottom: 6px; }
+  .main .subtitle { color: #7f8c8d; font-size: 13px; margin-bottom: 24px; }
+
+  /* 表单 */
+  .form-group { margin-bottom: 16px; }
+  .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #34495e; }
+  .form-group input[type="text"], .form-group select, .form-group textarea {
+    width: 100%; padding: 8px 12px; border: 1px solid #bdc3c7; border-radius: 4px;
+    font-size: 13px; font-family: inherit; background: #fff;
+  }
+  .form-group textarea { font-family: "Consolas", "Monaco", monospace; resize: vertical; min-height: 120px; }
+  .form-row { display: flex; gap: 16px; }
+  .form-row .form-group { flex: 1; }
+  .checkbox-group { display: flex; align-items: center; gap: 8px; }
+  .checkbox-group input { width: auto; }
+
+  .btn { background: #3498db; color: #fff; border: none; padding: 10px 24px; border-radius: 4px;
+         font-size: 14px; cursor: pointer; transition: background 0.15s; }
+  .btn:hover { background: #2980b9; }
+  .btn:disabled { background: #95a5a6; cursor: not-allowed; }
+
+  /* 结果区 */
+  .result { margin-top: 24px; }
+  .result-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .result-header h3 { font-size: 15px; }
+  .result-box { background: #fff; border: 1px solid #bdc3c7; border-radius: 4px; padding: 14px;
+                font-family: "Consolas", "Monaco", monospace; font-size: 13px; white-space: pre-wrap;
+                word-break: break-all; max-height: 400px; overflow-y: auto; line-height: 1.6; }
+  .result-box.error { background: #fdf0ef; border-color: #e74c3c; color: #c0392b; }
+  .result-box.success { background: #eafaf1; border-color: #27ae60; color: #1e8449; }
+
+  /* diff 表格 */
+  .diff-table { width: 100%; border-collapse: collapse; font-family: "Consolas", "Monaco", monospace; font-size: 12px; }
+  .diff-table td { padding: 2px 8px; vertical-align: top; border-bottom: 1px solid #eee; }
+  .diff-table .ln { color: #95a5a6; text-align: right; width: 40px; user-select: none; }
+  .diff-table .add { background: #eafaf1; }
+  .diff-table .del { background: #fdf0ef; }
+  .diff-table .change { background: #fef9e7; }
+  .diff-tag { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 11px; font-weight: bold; }
+  .tag-ADD { background: #27ae60; color: #fff; }
+  .tag-DELETE { background: #e74c3c; color: #fff; }
+  .tag-CHANGE { background: #f39c12; color: #fff; }
+  .tag-INSERT { background: #27ae60; color: #fff; }
+
+  .diff-path { font-weight: bold; color: #2c3e50; }
+  .diff-old { color: #c0392b; text-decoration: line-through; }
+  .diff-new { color: #1e8449; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="sidebar">
+    <h1>Toolbox</h1>
+    <div id="toolList"></div>
+  </div>
+  <div class="main" id="main">
+    <div style="text-align:center;color:#95a5a6;margin-top:100px;">请从左侧选择一个工具</div>
+  </div>
+</div>
+
+<script>
+// 每个工具的表单配置
+const TOOL_CONFIGS = {
+  timestamp: {
+    fields: [
+      { key: 'type', label: '操作类型', type: 'select', options: [
+        { value: 'now', label: '获取当前时间' },
+        { value: 'toDate', label: '时间戳 → 日期' },
+        { value: 'toTimestamp', label: '日期 → 时间戳' }
+      ]},
+      { key: 'timestamp', label: '时间戳（秒或毫秒）', type: 'text', showWhen: f => f.type === 'toDate' },
+      { key: 'datetime', label: '日期时间', type: 'text', showWhen: f => f.type === 'toTimestamp', placeholder: '2026-08-31 12:00:00' },
+      { key: 'format', label: '日期格式', type: 'text', default: 'yyyy-MM-dd HH:mm:ss' },
+      { key: 'timezone', label: '时区（可选）', type: 'text', placeholder: '如 Asia/Shanghai，留空用系统默认' }
+    ]
+  },
+  'json-format': {
+    fields: [
+      { key: 'action', label: '操作', type: 'select', options: [
+        { value: 'format', label: '美化（格式化）' },
+        { value: 'compress', label: '压缩（单行）' },
+        { value: 'validate', label: '校验' },
+        { value: 'escape', label: '转义' },
+        { value: 'unescape', label: '反转义' }
+      ]},
+      { key: 'input', label: '输入内容', type: 'textarea' }
+    ]
+  },
+  'text-diff': {
+    fields: [
+      { key: 'textA', label: '原始文本（A）', type: 'textarea' },
+      { key: 'textB', label: '对比文本（B）', type: 'textarea' },
+      { key: 'ignoreWhitespace', label: '忽略行首尾空白', type: 'checkbox' }
+    ]
+  },
+  'json-compare': {
+    fields: [
+      { key: 'jsonA', label: 'JSON A', type: 'textarea' },
+      { key: 'jsonB', label: 'JSON B', type: 'textarea' }
+    ]
+  }
+};
+
+let currentTool = null;
+let tools = [];
+
+// 加载工具列表
+fetch('/api/tools')
+  .then(r => r.json())
+  .then(data => {
+    tools = data;
+    renderToolList();
+  });
+
+function renderToolList() {
+  const list = document.getElementById('toolList');
+  list.innerHTML = tools.map(t =>
+    `<div class="tool-item" data-name="${t.name}" onclick="selectTool('${t.name}')">
+      ${t.displayName}
+      <div class="desc">${t.description}</div>
+    </div>`
+  ).join('');
+}
+
+function selectTool(name) {
+  currentTool = tools.find(t => t.name === name);
+  document.querySelectorAll('.tool-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.name === name);
+  });
+  renderMain();
+}
+
+function renderMain() {
+  const main = document.getElementById('main');
+  const cfg = TOOL_CONFIGS[currentTool.name] || { fields: [] };
+  const formValues = {};
+  cfg.fields.forEach(f => { if (f.default !== undefined) formValues[f.key] = f.default; });
+
+  main.innerHTML = `
+    <h2>${currentTool.displayName}</h2>
+    <div class="subtitle">${currentTool.description}</div>
+    <div id="formArea">${renderForm(cfg, formValues)}</div>
+    <button class="btn" onclick="execute()">执行</button>
+    <div class="result" id="result" style="display:none;"></div>
+  `;
+  // 绑定 select 变化事件
+  cfg.fields.forEach(f => {
+    if (f.type === 'select') {
+      const el = document.getElementById('field-' + f.key);
+      if (el) el.addEventListener('change', () => {
+        formValues[f.key] = el.value;
+        document.getElementById('formArea').innerHTML = renderForm(cfg, getFormValues(cfg));
+        bindFormEvents(cfg, formValues);
+      });
+    }
+  });
+}
+
+function getFormValues(cfg) {
+  const vals = {};
+  cfg.fields.forEach(f => {
+    const el = document.getElementById('field-' + f.key);
+    if (el) {
+      vals[f.key] = f.type === 'checkbox' ? el.checked : el.value;
+    }
+  });
+  return vals;
+}
+
+function bindFormEvents(cfg, formValues) {
+  cfg.fields.forEach(f => {
+    if (f.type === 'select') {
+      const el = document.getElementById('field-' + f.key);
+      if (el) el.addEventListener('change', () => {
+        const vals = getFormValues(cfg);
+        document.getElementById('formArea').innerHTML = renderForm(cfg, vals);
+        bindFormEvents(cfg, formValues);
+      });
+    }
+  });
+}
+
+function renderForm(cfg, values) {
+  return cfg.fields.map(f => {
+    if (f.showWhen && !f.showWhen(values)) return '';
+    const val = values[f.key] !== undefined ? values[f.key] : (f.default || '');
+    if (f.type === 'select') {
+      return `<div class="form-group">
+        <label>${f.label}</label>
+        <select id="field-${f.key}">
+          ${f.options.map(o => `<option value="${o.value}" ${o.value === val ? 'selected' : ''}>${o.label}</option>`).join('')}
+        </select>
+      </div>`;
+    }
+    if (f.type === 'textarea') {
+      return `<div class="form-group">
+        <label>${f.label}</label>
+        <textarea id="field-${f.key}" placeholder="${f.placeholder || ''}">${val}</textarea>
+      </div>`;
+    }
+    if (f.type === 'checkbox') {
+      return `<div class="form-group checkbox-group">
+        <input type="checkbox" id="field-${f.key}" ${val ? 'checked' : ''}>
+        <label for="field-${f.key}" style="margin:0;font-weight:normal;">${f.label}</label>
+      </div>`;
+    }
+    return `<div class="form-group">
+      <label>${f.label}</label>
+      <input type="text" id="field-${f.key}" value="${val}" placeholder="${f.placeholder || ''}">
+    </div>`;
+  }).join('');
+}
+
+function execute() {
+  const cfg = TOOL_CONFIGS[currentTool.name];
+  const params = {};
+  cfg.fields.forEach(f => {
+    const el = document.getElementById('field-' + f.key);
+    if (el && (!f.showWhen || f.showWhen(getFormValues(cfg)))) {
+      params[f.key] = f.type === 'checkbox' ? el.checked : el.value;
+    }
+  });
+
+  const btn = document.querySelector('.btn');
+  btn.disabled = true;
+  btn.textContent = '执行中...';
+
+  fetch(`/api/tools/${currentTool.name}/execute`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params)
+  })
+  .then(r => r.json())
+  .then(res => {
+    btn.disabled = false;
+    btn.textContent = '执行';
+    showResult(res);
+  })
+  .catch(e => {
+    btn.disabled = false;
+    btn.textContent = '执行';
+    showResult({ success: false, message: '请求失败: ' + e.message });
+  });
+}
+
+function showResult(res) {
+  const box = document.getElementById('result');
+  box.style.display = 'block';
+
+  if (!res.success) {
+    box.innerHTML = `<div class="result-header"><h3>结果</h3></div>
+      <div class="result-box error">${res.message || '执行失败'}</div>`;
+    return;
+  }
+
+  let content = '';
+  const data = res.data;
+
+  // 按工具类型渲染结果
+  if (currentTool.name === 'timestamp') {
+    content = `<div class="result-box success">时间戳（秒）: ${data.timestampSec}
+时间戳（毫秒）: ${data.timestampMs}
+日期时间: ${data.datetime}</div>`;
+  } else if (currentTool.name === 'json-format') {
+    const cls = data.valid === false ? 'error' : (data.valid === true ? 'success' : '');
+    content = `<div class="result-box ${cls}">${escapeHtml(data.output)}</div>`;
+  } else if (currentTool.name === 'text-diff') {
+    content = renderTextDiff(data);
+  } else if (currentTool.name === 'json-compare') {
+    content = renderJsonCompare(data);
+  } else {
+    content = `<div class="result-box">${escapeHtml(JSON.stringify(data, null, 2))}</div>`;
+  }
+
+  box.innerHTML = `<div class="result-header"><h3>结果（${data.identical ? '完全相同' : (data.diffCount !== undefined ? data.diffCount + ' 处差异' : (data.changeCount !== undefined ? data.changeCount + ' 处变更' : '完成'))}）</h3></div>${content}`;
+}
+
+function renderTextDiff(data) {
+  if (data.identical) {
+    return '<div class="result-box success">两段文本完全相同</div>';
+  }
+  let html = '<div style="margin-bottom:12px;"><strong>Unified Diff:</strong></div>';
+  html += `<div class="result-box" style="margin-bottom:16px;">${escapeHtml(data.unifiedDiff)}</div>`;
+  html += '<div><strong>差异详情:</strong></div>';
+  html += '<table class="diff-table"><tbody>';
+  data.deltas.forEach(d => {
+    const tagClass = 'tag-' + d.type;
+    const tagLabel = d.type === 'INSERT' ? '新增' : d.type === 'DELETE' ? '删除' : d.type === 'CHANGE' ? '修改' : d.type;
+    html += `<tr class="${d.type === 'INSERT' ? 'add' : d.type === 'DELETE' ? 'del' : 'change'}">
+      <td class="ln">${d.sourcePosition + 1}</td>
+      <td><span class="diff-tag ${tagClass}">${tagLabel}</span></td>
+      <td>${d.type === 'DELETE' || d.type === 'CHANGE' ? escapeHtml(d.sourceLines.join('\n')) : ''}</td>
+      <td>${d.type === 'INSERT' || d.type === 'CHANGE' ? escapeHtml(d.targetLines.join('\n')) : ''}</td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  return html;
+}
+
+function renderJsonCompare(data) {
+  if (data.identical) {
+    return '<div class="result-box success">两个 JSON 完全相同</div>';
+  }
+  let html = '<table class="diff-table"><tbody>';
+  data.differences.forEach(d => {
+    const typeLabel = d.type === 'ADDED' ? '新增' : d.type === 'REMOVED' ? '删除' : d.type === 'VALUE_CHANGE' ? '值不同' : '类型不同';
+    const tagClass = d.type === 'ADDED' ? 'tag-ADD' : d.type === 'REMOVED' ? 'tag-DELETE' : 'tag-CHANGE';
+    html += `<tr>
+      <td><span class="diff-tag ${tagClass}">${typeLabel}</span></td>
+      <td class="diff-path">${escapeHtml(d.path)}</td>
+      <td class="diff-old">${d.oldValue !== null ? escapeHtml(String(d.oldValue)) : '—'}</td>
+      <td class="diff-new">${d.newValue !== null ? escapeHtml(String(d.newValue)) : '—'}</td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  return html;
+}
+
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+</script>
+</body>
+</html>
