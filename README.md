@@ -4,12 +4,18 @@
 
 ## 功能
 
+### 首页系统信息
+打开首页即展示本机硬件参数：操作系统、CPU 型号与核心数、内存使用、磁盘分区、所有网卡 IPv4 地址（点击可复制）。
+
+### 工具列表
+
 | 工具 | 标识 | 说明 |
 |---|---|---|
 | 时间戳转换 | `timestamp` | 时间戳↔日期互转，自动识别秒/毫秒，支持时区 |
 | JSON 格式化 | `json-format` | 美化、压缩、校验、转义/反转义 |
 | 文本 Diff | `text-diff` | 两段文本按行对比，输出 unified diff 与差异详情 |
 | JSON 对比 | `json-compare` | 两个 JSON 结构化对比，按路径输出差异 |
+| IP 端口检测 | `ip-port-checker` | 检测指定 IP 的端口是否开放，支持多端口和端口范围（如 80,443,8000-9000） |
 
 ## 环境要求
 
@@ -68,6 +74,7 @@ public class MyTool implements Tool {
 
 - `GET /api/tools` — 列出所有工具
 - `POST /api/tools/{name}/execute` — 执行指定工具，Body 为 JSON 参数
+- `GET /api/system/info` — 获取本机系统信息（OS、CPU、内存、磁盘、IP）
 
 ## 技术栈
 

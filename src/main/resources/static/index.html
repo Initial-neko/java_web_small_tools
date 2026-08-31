@@ -11,7 +11,7 @@
 
   /* 侧边栏 */
   .sidebar { width: 220px; background: #2c3e50; color: #ecf0f1; padding: 20px 0; flex-shrink: 0; }
-  .sidebar h1 { font-size: 18px; padding: 0 20px 20px; border-bottom: 1px solid #34495e; margin-bottom: 10px; }
+  .sidebar h1 { font-size: 18px; padding: 0 20px 20px; border-bottom: 1px solid #34495e; margin-bottom: 10px; cursor: pointer; }
   .tool-item { padding: 12px 20px; cursor: pointer; transition: background 0.15s; font-size: 14px; }
   .tool-item:hover { background: #34495e; }
   .tool-item.active { background: #3498db; }
@@ -40,6 +40,7 @@
          font-size: 14px; cursor: pointer; transition: background 0.15s; }
   .btn:hover { background: #2980b9; }
   .btn:disabled { background: #95a5a6; cursor: not-allowed; }
+  .btn-sm { padding: 4px 10px; font-size: 12px; }
 
   /* 结果区 */
   .result { margin-top: 24px; }
@@ -50,6 +51,23 @@
                 word-break: break-all; max-height: 400px; overflow-y: auto; line-height: 1.6; }
   .result-box.error { background: #fdf0ef; border-color: #e74c3c; color: #c0392b; }
   .result-box.success { background: #eafaf1; border-color: #27ae60; color: #1e8449; }
+
+  /* 系统信息卡片 */
+  .sys-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .sys-card { background: #fff; border-radius: 6px; padding: 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+  .sys-card h4 { font-size: 14px; color: #7f8c8d; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .sys-card .row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 13px; border-bottom: 1px solid #f0f0f0; }
+  .sys-card .row:last-child { border-bottom: none; }
+  .sys-card .row .label { color: #7f8c8d; }
+  .sys-card .row .value { font-weight: 600; color: #2c3e50; }
+  .ip-chip { display: inline-block; background: #eaf2f8; color: #2980b9; padding: 3px 10px; border-radius: 12px;
+             font-size: 12px; font-family: "Consolas", monospace; margin: 2px 4px 2px 0; cursor: pointer; }
+  .ip-chip:hover { background: #d4e6f1; }
+  .progress-bar { height: 8px; background: #ecf0f1; border-radius: 4px; overflow: hidden; margin-top: 6px; }
+  .progress-fill { height: 100%; border-radius: 4px; transition: width 0.3s; }
+  .progress-fill.high { background: #e74c3c; }
+  .progress-fill.mid { background: #f39c12; }
+  .progress-fill.low { background: #27ae60; }
 
   /* diff 表格 */
   .diff-table { width: 100%; border-collapse: collapse; font-family: "Consolas", "Monaco", monospace; font-size: 12px; }
@@ -63,20 +81,36 @@
   .tag-DELETE { background: #e74c3c; color: #fff; }
   .tag-CHANGE { background: #f39c12; color: #fff; }
   .tag-INSERT { background: #27ae60; color: #fff; }
-
   .diff-path { font-weight: bold; color: #2c3e50; }
   .diff-old { color: #c0392b; text-decoration: line-through; }
   .diff-new { color: #1e8449; }
+
+  /* 端口检测结果 */
+  .port-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
+  .port-item { padding: 8px 12px; border-radius: 4px; font-size: 13px; font-family: "Consolas", monospace;
+               display: flex; justify-content: space-between; align-items: center; }
+  .port-item.open { background: #eafaf1; border: 1px solid #27ae60; }
+  .port-item.closed { background: #fdf0ef; border: 1px solid #e74c3c; opacity: 0.85; }
+  .port-item .port-num { font-weight: bold; }
+  .port-item .port-status { font-size: 11px; }
+  .port-summary { margin-bottom: 14px; font-size: 13px; }
+  .port-summary span { font-weight: bold; margin-right: 16px; }
+  .local-ips { margin-bottom: 16px; padding: 10px 14px; background: #f8f9fa; border-radius: 4px; font-size: 12px; }
+  .local-ips .ip-chip { cursor: pointer; }
 </style>
 </head>
 <body>
 <div class="app">
   <div class="sidebar">
-    <h1>Toolbox</h1>
+    <h1 onclick="goHome()">Toolbox</h1>
     <div id="toolList"></div>
   </div>
   <div class="main" id="main">
-    <div style="text-align:center;color:#95a5a6;margin-top:100px;">请从左侧选择一个工具</div>
+    <div id="homePage">
+      <h2>系统信息</h2>
+      <div class="subtitle">本机硬件参数与网络信息（点击左侧标题可返回）</div>
+      <div id="systemInfo"><div style="color:#95a5a6;">加载中...</div></div>
+    </div>
   </div>
 </div>
 
@@ -120,11 +154,19 @@ const TOOL_CONFIGS = {
       { key: 'jsonA', label: 'JSON A', type: 'textarea' },
       { key: 'jsonB', label: 'JSON B', type: 'textarea' }
     ]
+  },
+  'ip-port-checker': {
+    fields: [
+      { key: 'ip', label: 'IP 地址或域名', type: 'text', placeholder: '如 127.0.0.1 或 github.com' },
+      { key: 'ports', label: '端口（支持 80,443,8000-9000 混合）', type: 'text', placeholder: '80,443,8080 或 1-1000' },
+      { key: 'timeout', label: '超时时间（毫秒）', type: 'text', default: '3000' }
+    ]
   }
 };
 
 let currentTool = null;
 let tools = [];
+let systemInfo = null;
 
 // 加载工具列表
 fetch('/api/tools')
@@ -134,13 +176,93 @@ fetch('/api/tools')
     renderToolList();
   });
 
+// 加载系统信息
+loadSystemInfo();
+
+function loadSystemInfo() {
+  fetch('/api/system/info')
+    .then(r => r.json())
+    .then(data => {
+      systemInfo = data;
+      renderSystemInfo(data);
+    })
+    .catch(e => {
+      document.getElementById('systemInfo').innerHTML =
+        '<div style="color:#e74c3c;">系统信息加载失败: ' + e.message + '</div>';
+    });
+}
+
+function renderSystemInfo(data) {
+  const memPct = parseFloat(data.memory.usagePercent) || 0;
+  const memClass = memPct > 80 ? 'high' : memPct > 50 ? 'mid' : 'low';
+
+  let ipsHtml = '';
+  if (data.ips && data.ips.length > 0) {
+    ipsHtml = data.ips.map(ip =>
+      '<span class="ip-chip" title="' + escapeHtml(ip.name) + '" onclick="copyText(\'' + ip.ip + '\')">' + ip.ip + '</span>'
+    ).join('');
+  } else {
+    ipsHtml = '<span style="color:#95a5a6;">未检测到</span>';
+  }
+
+  let disksHtml = '';
+  if (data.disks && data.disks.length > 0) {
+    disksHtml = data.disks.map(d => {
+      const pct = parseFloat(d.usagePercent) || 0;
+      const cls = pct > 80 ? 'high' : pct > 50 ? 'mid' : 'low';
+      return '<div class="row"><span class="label">' + d.path + '</span>' +
+        '<span class="value">' + d.usedGB + ' / ' + d.totalGB + ' GB (' + d.usagePercent + ')</span></div>' +
+        '<div class="progress-bar"><div class="progress-fill ' + cls + '" style="width:' + pct + '%"></div></div>';
+    }).join('');
+  }
+
+  document.getElementById('systemInfo').innerHTML =
+    '<div class="sys-grid">' +
+      '<div class="sys-card"><h4>操作系统</h4>' +
+        '<div class="row"><span class="label">系统</span><span class="value">' + escapeHtml(data.os) + '</span></div>' +
+        '<div class="row"><span class="label">JVM</span><span class="value">' + escapeHtml(data.jvm) + '</span></div>' +
+      '</div>' +
+      '<div class="sys-card"><h4>CPU</h4>' +
+        '<div class="row"><span class="label">型号</span><span class="value" style="font-size:12px;">' + escapeHtml(data.cpu.name) + '</span></div>' +
+        '<div class="row"><span class="label">逻辑核心</span><span class="value">' + data.cpu.logicalCores + '</span></div>' +
+      '</div>' +
+      '<div class="sys-card"><h4>内存</h4>' +
+        '<div class="row"><span class="label">已用 / 总量</span><span class="value">' + data.memory.usedMB + ' / ' + data.memory.totalMB + ' MB</span></div>' +
+        '<div class="row"><span class="label">可用</span><span class="value">' + data.memory.freeMB + ' MB</span></div>' +
+        '<div class="row"><span class="label">使用率</span><span class="value">' + data.memory.usagePercent + '</span></div>' +
+        '<div class="progress-bar"><div class="progress-fill ' + memClass + '" style="width:' + memPct + '%"></div></div>' +
+      '</div>' +
+      '<div class="sys-card"><h4>本机 IP（点击复制）</h4>' +
+        '<div style="margin-top:4px;">' + ipsHtml + '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="sys-card" style="margin-bottom:20px;"><h4>磁盘</h4>' + disksHtml + '</div>';
+}
+
+function copyText(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    // 简单提示
+  }).catch(() => {});
+}
+
+function goHome() {
+  currentTool = null;
+  document.querySelectorAll('.tool-item').forEach(el => el.classList.remove('active'));
+  document.getElementById('main').innerHTML =
+    '<div id="homePage"><h2>系统信息</h2>' +
+    '<div class="subtitle">本机硬件参数与网络信息（点击左侧标题可返回）</div>' +
+    '<div id="systemInfo">' + (systemInfo ? '' : '<div style="color:#95a5a6;">加载中...</div>') + '</div></div>';
+  if (systemInfo) renderSystemInfo(systemInfo);
+  else loadSystemInfo();
+}
+
 function renderToolList() {
   const list = document.getElementById('toolList');
   list.innerHTML = tools.map(t =>
-    `<div class="tool-item" data-name="${t.name}" onclick="selectTool('${t.name}')">
-      ${t.displayName}
-      <div class="desc">${t.description}</div>
-    </div>`
+    '<div class="tool-item" data-name="' + t.name + '" onclick="selectTool(\'' + t.name + '\')">' +
+      t.displayName +
+      '<div class="desc">' + t.description + '</div>' +
+    '</div>'
   ).join('');
 }
 
@@ -158,14 +280,21 @@ function renderMain() {
   const formValues = {};
   cfg.fields.forEach(f => { if (f.default !== undefined) formValues[f.key] = f.default; });
 
-  main.innerHTML = `
-    <h2>${currentTool.displayName}</h2>
-    <div class="subtitle">${currentTool.description}</div>
-    <div id="formArea">${renderForm(cfg, formValues)}</div>
-    <button class="btn" onclick="execute()">执行</button>
-    <div class="result" id="result" style="display:none;"></div>
-  `;
-  // 绑定 select 变化事件
+  let localIpHint = '';
+  if (currentTool.name === 'ip-port-checker' && systemInfo && systemInfo.ips && systemInfo.ips.length > 0) {
+    localIpHint = '<div class="local-ips">本机 IP：' +
+      systemInfo.ips.map(ip => '<span class="ip-chip" onclick="fillIp(\'' + ip.ip + '\')">' + ip.ip + '</span>').join('') +
+      ' <span style="color:#95a5a6;">（点击填入）</span></div>';
+  }
+
+  main.innerHTML =
+    '<h2>' + currentTool.displayName + '</h2>' +
+    '<div class="subtitle">' + currentTool.description + '</div>' +
+    localIpHint +
+    '<div id="formArea">' + renderForm(cfg, formValues) + '</div>' +
+    '<button class="btn" onclick="execute()">执行</button>' +
+    '<div class="result" id="result" style="display:none;"></div>';
+
   cfg.fields.forEach(f => {
     if (f.type === 'select') {
       const el = document.getElementById('field-' + f.key);
@@ -176,6 +305,10 @@ function renderMain() {
       });
     }
   });
+}
+
+function fillIp(ip) {
+  document.getElementById('field-ip').value = ip;
 }
 
 function getFormValues(cfg) {
@@ -207,29 +340,22 @@ function renderForm(cfg, values) {
     if (f.showWhen && !f.showWhen(values)) return '';
     const val = values[f.key] !== undefined ? values[f.key] : (f.default || '');
     if (f.type === 'select') {
-      return `<div class="form-group">
-        <label>${f.label}</label>
-        <select id="field-${f.key}">
-          ${f.options.map(o => `<option value="${o.value}" ${o.value === val ? 'selected' : ''}>${o.label}</option>`).join('')}
-        </select>
-      </div>`;
+      return '<div class="form-group"><label>' + f.label + '</label>' +
+        '<select id="field-' + f.key + '">' +
+        f.options.map(o => '<option value="' + o.value + '" ' + (o.value === val ? 'selected' : '') + '>' + o.label + '</option>').join('') +
+        '</select></div>';
     }
     if (f.type === 'textarea') {
-      return `<div class="form-group">
-        <label>${f.label}</label>
-        <textarea id="field-${f.key}" placeholder="${f.placeholder || ''}">${val}</textarea>
-      </div>`;
+      return '<div class="form-group"><label>' + f.label + '</label>' +
+        '<textarea id="field-' + f.key + '" placeholder="' + (f.placeholder || '') + '">' + val + '</textarea></div>';
     }
     if (f.type === 'checkbox') {
-      return `<div class="form-group checkbox-group">
-        <input type="checkbox" id="field-${f.key}" ${val ? 'checked' : ''}>
-        <label for="field-${f.key}" style="margin:0;font-weight:normal;">${f.label}</label>
-      </div>`;
+      return '<div class="form-group checkbox-group">' +
+        '<input type="checkbox" id="field-' + f.key + '" ' + (val ? 'checked' : '') + '>' +
+        '<label for="field-' + f.key + '" style="margin:0;font-weight:normal;">' + f.label + '</label></div>';
     }
-    return `<div class="form-group">
-      <label>${f.label}</label>
-      <input type="text" id="field-${f.key}" value="${val}" placeholder="${f.placeholder || ''}">
-    </div>`;
+    return '<div class="form-group"><label>' + f.label + '</label>' +
+      '<input type="text" id="field-' + f.key + '" value="' + val + '" placeholder="' + (f.placeholder || '') + '"></div>';
   }).join('');
 }
 
@@ -247,7 +373,7 @@ function execute() {
   btn.disabled = true;
   btn.textContent = '执行中...';
 
-  fetch(`/api/tools/${currentTool.name}/execute`, {
+  fetch('/api/tools/' + currentTool.name + '/execute', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(params)
@@ -270,31 +396,55 @@ function showResult(res) {
   box.style.display = 'block';
 
   if (!res.success) {
-    box.innerHTML = `<div class="result-header"><h3>结果</h3></div>
-      <div class="result-box error">${res.message || '执行失败'}</div>`;
+    box.innerHTML = '<div class="result-header"><h3>结果</h3></div>' +
+      '<div class="result-box error">' + (res.message || '执行失败') + '</div>';
     return;
   }
 
   let content = '';
   const data = res.data;
 
-  // 按工具类型渲染结果
   if (currentTool.name === 'timestamp') {
-    content = `<div class="result-box success">时间戳（秒）: ${data.timestampSec}
-时间戳（毫秒）: ${data.timestampMs}
-日期时间: ${data.datetime}</div>`;
+    content = '<div class="result-box success">时间戳（秒）: ' + data.timestampSec +
+      '\n时间戳（毫秒）: ' + data.timestampMs +
+      '\n日期时间: ' + data.datetime + '</div>';
   } else if (currentTool.name === 'json-format') {
     const cls = data.valid === false ? 'error' : (data.valid === true ? 'success' : '');
-    content = `<div class="result-box ${cls}">${escapeHtml(data.output)}</div>`;
+    content = '<div class="result-box ' + cls + '">' + escapeHtml(data.output) + '</div>';
   } else if (currentTool.name === 'text-diff') {
     content = renderTextDiff(data);
   } else if (currentTool.name === 'json-compare') {
     content = renderJsonCompare(data);
+  } else if (currentTool.name === 'ip-port-checker') {
+    content = renderPortChecker(data);
   } else {
-    content = `<div class="result-box">${escapeHtml(JSON.stringify(data, null, 2))}</div>`;
+    content = '<div class="result-box">' + escapeHtml(JSON.stringify(data, null, 2)) + '</div>';
   }
 
-  box.innerHTML = `<div class="result-header"><h3>结果（${data.identical ? '完全相同' : (data.diffCount !== undefined ? data.diffCount + ' 处差异' : (data.changeCount !== undefined ? data.changeCount + ' 处变更' : '完成'))}）</h3></div>${content}`;
+  const summary = data.identical ? '完全相同' :
+    (data.diffCount !== undefined ? data.diffCount + ' 处差异' :
+    (data.changeCount !== undefined ? data.changeCount + ' 处变更' :
+    (data.openCount !== undefined ? '开放 ' + data.openCount + ' / 共 ' + data.totalCount : '完成')));
+
+  box.innerHTML = '<div class="result-header"><h3>结果（' + summary + '）</h3></div>' + content;
+}
+
+function renderPortChecker(data) {
+  let html = '<div class="port-summary">' +
+    '<span style="color:#27ae60;">开放: ' + data.openCount + '</span>' +
+    '<span style="color:#e74c3c;">关闭: ' + data.closedCount + '</span>' +
+    '<span>总计: ' + data.totalCount + '</span>' +
+    '<span>目标: ' + escapeHtml(data.ip) + '</span></div>';
+
+  html += '<div class="port-grid">';
+  data.results.forEach(r => {
+    html += '<div class="port-item ' + (r.open ? 'open' : 'closed') + '">' +
+      '<span class="port-num">' + r.port + '</span>' +
+      '<span class="port-status">' + (r.open ? '开放 ' + r.costMs + 'ms' : '关闭') + '</span>' +
+      '</div>';
+  });
+  html += '</div>';
+  return html;
 }
 
 function renderTextDiff(data) {
@@ -302,18 +452,18 @@ function renderTextDiff(data) {
     return '<div class="result-box success">两段文本完全相同</div>';
   }
   let html = '<div style="margin-bottom:12px;"><strong>Unified Diff:</strong></div>';
-  html += `<div class="result-box" style="margin-bottom:16px;">${escapeHtml(data.unifiedDiff)}</div>`;
+  html += '<div class="result-box" style="margin-bottom:16px;">' + escapeHtml(data.unifiedDiff) + '</div>';
   html += '<div><strong>差异详情:</strong></div>';
   html += '<table class="diff-table"><tbody>';
   data.deltas.forEach(d => {
     const tagClass = 'tag-' + d.type;
     const tagLabel = d.type === 'INSERT' ? '新增' : d.type === 'DELETE' ? '删除' : d.type === 'CHANGE' ? '修改' : d.type;
-    html += `<tr class="${d.type === 'INSERT' ? 'add' : d.type === 'DELETE' ? 'del' : 'change'}">
-      <td class="ln">${d.sourcePosition + 1}</td>
-      <td><span class="diff-tag ${tagClass}">${tagLabel}</span></td>
-      <td>${d.type === 'DELETE' || d.type === 'CHANGE' ? escapeHtml(d.sourceLines.join('\n')) : ''}</td>
-      <td>${d.type === 'INSERT' || d.type === 'CHANGE' ? escapeHtml(d.targetLines.join('\n')) : ''}</td>
-    </tr>`;
+    html += '<tr class="' + (d.type === 'INSERT' ? 'add' : d.type === 'DELETE' ? 'del' : 'change') + '">' +
+      '<td class="ln">' + (d.sourcePosition + 1) + '</td>' +
+      '<td><span class="diff-tag ' + tagClass + '">' + tagLabel + '</span></td>' +
+      '<td>' + (d.type === 'DELETE' || d.type === 'CHANGE' ? escapeHtml(d.sourceLines.join('\n')) : '') + '</td>' +
+      '<td>' + (d.type === 'INSERT' || d.type === 'CHANGE' ? escapeHtml(d.targetLines.join('\n')) : '') + '</td>' +
+      '</tr>';
   });
   html += '</tbody></table>';
   return html;
@@ -327,12 +477,12 @@ function renderJsonCompare(data) {
   data.differences.forEach(d => {
     const typeLabel = d.type === 'ADDED' ? '新增' : d.type === 'REMOVED' ? '删除' : d.type === 'VALUE_CHANGE' ? '值不同' : '类型不同';
     const tagClass = d.type === 'ADDED' ? 'tag-ADD' : d.type === 'REMOVED' ? 'tag-DELETE' : 'tag-CHANGE';
-    html += `<tr>
-      <td><span class="diff-tag ${tagClass}">${typeLabel}</span></td>
-      <td class="diff-path">${escapeHtml(d.path)}</td>
-      <td class="diff-old">${d.oldValue !== null ? escapeHtml(String(d.oldValue)) : '—'}</td>
-      <td class="diff-new">${d.newValue !== null ? escapeHtml(String(d.newValue)) : '—'}</td>
-    </tr>`;
+    html += '<tr>' +
+      '<td><span class="diff-tag ' + tagClass + '">' + typeLabel + '</span></td>' +
+      '<td class="diff-path">' + escapeHtml(d.path) + '</td>' +
+      '<td class="diff-old">' + (d.oldValue !== null ? escapeHtml(String(d.oldValue)) : '—') + '</td>' +
+      '<td class="diff-new">' + (d.newValue !== null ? escapeHtml(String(d.newValue)) : '—') + '</td>' +
+      '</tr>';
   });
   html += '</tbody></table>';
   return html;
