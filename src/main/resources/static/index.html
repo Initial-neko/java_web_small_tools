@@ -8,8 +8,6 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: #f5f6fa; color: #2c3e50; }
   .app { display: flex; height: 100vh; }
-
-  /* 侧边栏 */
   .sidebar { width: 220px; background: #2c3e50; color: #ecf0f1; padding: 20px 0; flex-shrink: 0; }
   .sidebar h1 { font-size: 18px; padding: 0 20px 20px; border-bottom: 1px solid #34495e; margin-bottom: 10px; cursor: pointer; }
   .tool-item { padding: 12px 20px; cursor: pointer; transition: background 0.15s; font-size: 14px; }
@@ -17,13 +15,9 @@
   .tool-item.active { background: #3498db; }
   .tool-item .desc { font-size: 11px; color: #95a5a6; margin-top: 2px; }
   .tool-item.active .desc { color: #d6eaf8; }
-
-  /* 主内容 */
   .main { flex: 1; padding: 30px; overflow-y: auto; }
   .main h2 { font-size: 22px; margin-bottom: 6px; }
   .main .subtitle { color: #7f8c8d; font-size: 13px; margin-bottom: 24px; }
-
-  /* 表单 */
   .form-group { margin-bottom: 16px; }
   .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #34495e; }
   .form-group input[type="text"], .form-group select, .form-group textarea {
@@ -31,18 +25,13 @@
     font-size: 13px; font-family: inherit; background: #fff;
   }
   .form-group textarea { font-family: "Consolas", "Monaco", monospace; resize: vertical; min-height: 120px; }
-  .form-row { display: flex; gap: 16px; }
-  .form-row .form-group { flex: 1; }
   .checkbox-group { display: flex; align-items: center; gap: 8px; }
   .checkbox-group input { width: auto; }
-
   .btn { background: #3498db; color: #fff; border: none; padding: 10px 24px; border-radius: 4px;
          font-size: 14px; cursor: pointer; transition: background 0.15s; }
   .btn:hover { background: #2980b9; }
   .btn:disabled { background: #95a5a6; cursor: not-allowed; }
   .btn-sm { padding: 4px 10px; font-size: 12px; }
-
-  /* 结果区 */
   .result { margin-top: 24px; }
   .result-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
   .result-header h3 { font-size: 15px; }
@@ -51,8 +40,6 @@
                 word-break: break-all; max-height: 400px; overflow-y: auto; line-height: 1.6; }
   .result-box.error { background: #fdf0ef; border-color: #e74c3c; color: #c0392b; }
   .result-box.success { background: #eafaf1; border-color: #27ae60; color: #1e8449; }
-
-  /* 系统信息卡片 */
   .sys-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-bottom: 24px; }
   .sys-card { background: #fff; border-radius: 6px; padding: 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
   .sys-card h4 { font-size: 14px; color: #7f8c8d; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -64,12 +51,10 @@
              font-size: 12px; font-family: "Consolas", monospace; margin: 2px 4px 2px 0; cursor: pointer; }
   .ip-chip:hover { background: #d4e6f1; }
   .progress-bar { height: 8px; background: #ecf0f1; border-radius: 4px; overflow: hidden; margin-top: 6px; }
-  .progress-fill { height: 100%; border-radius: 4px; transition: width 0.3s; }
+  .progress-fill { height: 100%; border-radius: 4px; }
   .progress-fill.high { background: #e74c3c; }
   .progress-fill.mid { background: #f39c12; }
   .progress-fill.low { background: #27ae60; }
-
-  /* diff 表格 */
   .diff-table { width: 100%; border-collapse: collapse; font-family: "Consolas", "Monaco", monospace; font-size: 12px; }
   .diff-table td { padding: 2px 8px; vertical-align: top; border-bottom: 1px solid #eee; }
   .diff-table .ln { color: #95a5a6; text-align: right; width: 40px; user-select: none; }
@@ -77,15 +62,12 @@
   .diff-table .del { background: #fdf0ef; }
   .diff-table .change { background: #fef9e7; }
   .diff-tag { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 11px; font-weight: bold; }
-  .tag-ADD { background: #27ae60; color: #fff; }
+  .tag-ADD, .tag-INSERT { background: #27ae60; color: #fff; }
   .tag-DELETE { background: #e74c3c; color: #fff; }
   .tag-CHANGE { background: #f39c12; color: #fff; }
-  .tag-INSERT { background: #27ae60; color: #fff; }
   .diff-path { font-weight: bold; color: #2c3e50; }
   .diff-old { color: #c0392b; text-decoration: line-through; }
   .diff-new { color: #1e8449; }
-
-  /* 端口检测结果 */
   .port-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
   .port-item { padding: 8px 12px; border-radius: 4px; font-size: 13px; font-family: "Consolas", monospace;
                display: flex; justify-content: space-between; align-items: center; }
@@ -96,7 +78,31 @@
   .port-summary { margin-bottom: 14px; font-size: 13px; }
   .port-summary span { font-weight: bold; margin-right: 16px; }
   .local-ips { margin-bottom: 16px; padding: 10px 14px; background: #f8f9fa; border-radius: 4px; font-size: 12px; }
-  .local-ips .ip-chip { cursor: pointer; }
+  .upload-area { border: 2px dashed #bdc3c7; border-radius: 8px; padding: 60px 20px; text-align: center;
+                 cursor: pointer; transition: border-color 0.2s, background 0.2s; margin-bottom: 20px; }
+  .upload-area:hover { border-color: #3498db; background: #f0f7ff; }
+  .upload-area.dragover { border-color: #3498db; background: #e8f4fd; }
+  .upload-area .icon { font-size: 48px; margin-bottom: 12px; }
+  .upload-area .text { font-size: 15px; color: #2c3e50; }
+  .upload-area .hint { font-size: 12px; color: #95a5a6; margin-top: 6px; }
+  .sheet-tabs { display: flex; gap: 4px; margin-bottom: 12px; flex-wrap: wrap; }
+  .sheet-tab { padding: 6px 16px; background: #ecf0f1; border-radius: 4px 4px 0 0; cursor: pointer;
+               font-size: 13px; border: 1px solid #bdc3c7; border-bottom: none; }
+  .sheet-tab.active { background: #fff; font-weight: bold; color: #2980b9; }
+  .excel-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 13px; }
+  .excel-table-wrap { overflow: auto; max-height: 60vh; border: 1px solid #bdc3c7; border-radius: 4px; background: #fff; }
+  .excel-table { border-collapse: collapse; font-size: 12px; font-family: "Consolas", "Microsoft YaHei", monospace; }
+  .excel-table th { background: #f0f0f0; padding: 4px 8px; border: 1px solid #ddd; position: sticky; top: 0;
+                    z-index: 2; font-weight: bold; text-align: center; min-width: 40px; }
+  .excel-table td { padding: 3px 8px; border: 1px solid #e0e0e0; white-space: nowrap; max-width: 300px;
+                    overflow: hidden; text-overflow: ellipsis; }
+  .excel-table td:hover { overflow: visible; white-space: normal; background: #fffde7 !important; z-index: 1; position: relative; }
+  .excel-pagination { display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 14px; font-size: 13px; }
+  .excel-pagination button { padding: 5px 14px; border: 1px solid #bdc3c7; background: #fff; border-radius: 4px;
+                             cursor: pointer; font-size: 13px; }
+  .excel-pagination button:disabled { opacity: 0.4; cursor: not-allowed; }
+  .excel-pagination button:hover:not(:disabled) { background: #ecf0f1; }
+  .excel-pagination .page-info { color: #7f8c8d; }
 </style>
 </head>
 <body>
@@ -115,135 +121,87 @@
 </div>
 
 <script>
-// 每个工具的表单配置
 const TOOL_CONFIGS = {
-  timestamp: {
-    fields: [
-      { key: 'type', label: '操作类型', type: 'select', options: [
-        { value: 'now', label: '获取当前时间' },
-        { value: 'toDate', label: '时间戳 → 日期' },
-        { value: 'toTimestamp', label: '日期 → 时间戳' }
-      ]},
-      { key: 'timestamp', label: '时间戳（秒或毫秒）', type: 'text', showWhen: f => f.type === 'toDate' },
-      { key: 'datetime', label: '日期时间', type: 'text', showWhen: f => f.type === 'toTimestamp', placeholder: '2026-08-31 12:00:00' },
-      { key: 'format', label: '日期格式', type: 'text', default: 'yyyy-MM-dd HH:mm:ss' },
-      { key: 'timezone', label: '时区（可选）', type: 'text', placeholder: '如 Asia/Shanghai，留空用系统默认' }
-    ]
-  },
-  'json-format': {
-    fields: [
-      { key: 'action', label: '操作', type: 'select', options: [
-        { value: 'format', label: '美化（格式化）' },
-        { value: 'compress', label: '压缩（单行）' },
-        { value: 'validate', label: '校验' },
-        { value: 'escape', label: '转义' },
-        { value: 'unescape', label: '反转义' }
-      ]},
-      { key: 'input', label: '输入内容', type: 'textarea' }
-    ]
-  },
-  'text-diff': {
-    fields: [
-      { key: 'textA', label: '原始文本（A）', type: 'textarea' },
-      { key: 'textB', label: '对比文本（B）', type: 'textarea' },
-      { key: 'ignoreWhitespace', label: '忽略行首尾空白', type: 'checkbox' }
-    ]
-  },
-  'json-compare': {
-    fields: [
-      { key: 'jsonA', label: 'JSON A', type: 'textarea' },
-      { key: 'jsonB', label: 'JSON B', type: 'textarea' }
-    ]
-  },
-  'ip-port-checker': {
-    fields: [
-      { key: 'ip', label: 'IP 地址或域名', type: 'text', placeholder: '如 127.0.0.1 或 github.com' },
-      { key: 'ports', label: '端口（支持 80,443,8000-9000 混合）', type: 'text', placeholder: '80,443,8080 或 1-1000' },
-      { key: 'timeout', label: '超时时间（毫秒）', type: 'text', default: '3000' }
-    ]
-  }
+  timestamp: { fields: [
+    { key: 'type', label: '操作类型', type: 'select', options: [
+      { value: 'now', label: '获取当前时间' },
+      { value: 'toDate', label: '时间戳 → 日期' },
+      { value: 'toTimestamp', label: '日期 → 时间戳' }]},
+    { key: 'timestamp', label: '时间戳（秒或毫秒）', type: 'text', showWhen: f => f.type === 'toDate' },
+    { key: 'datetime', label: '日期时间', type: 'text', showWhen: f => f.type === 'toTimestamp', placeholder: '2026-08-31 12:00:00' },
+    { key: 'format', label: '日期格式', type: 'text', default: 'yyyy-MM-dd HH:mm:ss' },
+    { key: 'timezone', label: '时区（可选）', type: 'text', placeholder: '如 Asia/Shanghai' }
+  ]},
+  'json-format': { fields: [
+    { key: 'action', label: '操作', type: 'select', options: [
+      { value: 'format', label: '美化（格式化）' },
+      { value: 'compress', label: '压缩（单行）' },
+      { value: 'validate', label: '校验' },
+      { value: 'escape', label: '转义' },
+      { value: 'unescape', label: '反转义' }]},
+    { key: 'input', label: '输入内容', type: 'textarea' }
+  ]},
+  'text-diff': { fields: [
+    { key: 'textA', label: '原始文本（A）', type: 'textarea' },
+    { key: 'textB', label: '对比文本（B）', type: 'textarea' },
+    { key: 'ignoreWhitespace', label: '忽略行首尾空白', type: 'checkbox' }
+  ]},
+  'json-compare': { fields: [
+    { key: 'jsonA', label: 'JSON A', type: 'textarea' },
+    { key: 'jsonB', label: 'JSON B', type: 'textarea' }
+  ]},
+  'ip-port-checker': { fields: [
+    { key: 'ip', label: 'IP 地址或域名', type: 'text', placeholder: '如 127.0.0.1 或 github.com' },
+    { key: 'ports', label: '端口（支持 80,443,8000-9000 混合）', type: 'text', placeholder: '80,443,8080 或 1-1000' },
+    { key: 'timeout', label: '超时时间（毫秒）', type: 'text', default: '3000' }
+  ]}
 };
 
-let currentTool = null;
-let tools = [];
-let systemInfo = null;
+let currentTool = null, tools = [], systemInfo = null;
 
-// 加载工具列表
-fetch('/api/tools')
-  .then(r => r.json())
-  .then(data => {
-    tools = data;
-    renderToolList();
-  });
-
-// 加载系统信息
+fetch('/api/tools').then(r => r.json()).then(data => { tools = data; renderToolList(); });
 loadSystemInfo();
 
 function loadSystemInfo() {
-  fetch('/api/system/info')
-    .then(r => r.json())
-    .then(data => {
-      systemInfo = data;
-      renderSystemInfo(data);
-    })
-    .catch(e => {
-      document.getElementById('systemInfo').innerHTML =
-        '<div style="color:#e74c3c;">系统信息加载失败: ' + e.message + '</div>';
-    });
+  fetch('/api/system/info').then(r => r.json()).then(data => {
+    systemInfo = data; renderSystemInfo(data);
+  }).catch(e => {
+    document.getElementById('systemInfo').innerHTML = '<div style="color:#e74c3c;">加载失败: ' + e.message + '</div>';
+  });
 }
 
 function renderSystemInfo(data) {
   const memPct = parseFloat(data.memory.usagePercent) || 0;
-  const memClass = memPct > 80 ? 'high' : memPct > 50 ? 'mid' : 'low';
-
-  let ipsHtml = '';
-  if (data.ips && data.ips.length > 0) {
-    ipsHtml = data.ips.map(ip =>
-      '<span class="ip-chip" title="' + escapeHtml(ip.name) + '" onclick="copyText(\'' + ip.ip + '\')">' + ip.ip + '</span>'
-    ).join('');
-  } else {
-    ipsHtml = '<span style="color:#95a5a6;">未检测到</span>';
-  }
-
-  let disksHtml = '';
-  if (data.disks && data.disks.length > 0) {
-    disksHtml = data.disks.map(d => {
-      const pct = parseFloat(d.usagePercent) || 0;
-      const cls = pct > 80 ? 'high' : pct > 50 ? 'mid' : 'low';
-      return '<div class="row"><span class="label">' + d.path + '</span>' +
-        '<span class="value">' + d.usedGB + ' / ' + d.totalGB + ' GB (' + d.usagePercent + ')</span></div>' +
-        '<div class="progress-bar"><div class="progress-fill ' + cls + '" style="width:' + pct + '%"></div></div>';
-    }).join('');
-  }
-
+  const memCls = memPct > 80 ? 'high' : memPct > 50 ? 'mid' : 'low';
+  let ipsHtml = data.ips && data.ips.length > 0 ? data.ips.map(ip =>
+    '<span class="ip-chip" title="' + escapeHtml(ip.name) + '" onclick="copyText(\'' + ip.ip + '\')">' + ip.ip + '</span>'
+  ).join('') : '<span style="color:#95a5a6;">未检测到</span>';
+  let disksHtml = data.disks && data.disks.length > 0 ? data.disks.map(d => {
+    const pct = parseFloat(d.usagePercent) || 0;
+    const cls = pct > 80 ? 'high' : pct > 50 ? 'mid' : 'low';
+    return '<div class="row"><span class="label">' + d.path + '</span>' +
+      '<span class="value">' + d.usedGB + ' / ' + d.totalGB + ' GB (' + d.usagePercent + ')</span></div>' +
+      '<div class="progress-bar"><div class="progress-fill ' + cls + '" style="width:' + pct + '%"></div></div>';
+  }).join('') : '';
   document.getElementById('systemInfo').innerHTML =
     '<div class="sys-grid">' +
       '<div class="sys-card"><h4>操作系统</h4>' +
         '<div class="row"><span class="label">系统</span><span class="value">' + escapeHtml(data.os) + '</span></div>' +
-        '<div class="row"><span class="label">JVM</span><span class="value">' + escapeHtml(data.jvm) + '</span></div>' +
-      '</div>' +
+        '<div class="row"><span class="label">JVM</span><span class="value">' + escapeHtml(data.jvm) + '</span></div></div>' +
       '<div class="sys-card"><h4>CPU</h4>' +
         '<div class="row"><span class="label">型号</span><span class="value" style="font-size:12px;">' + escapeHtml(data.cpu.name) + '</span></div>' +
-        '<div class="row"><span class="label">逻辑核心</span><span class="value">' + data.cpu.logicalCores + '</span></div>' +
-      '</div>' +
+        '<div class="row"><span class="label">逻辑核心</span><span class="value">' + data.cpu.logicalCores + '</span></div></div>' +
       '<div class="sys-card"><h4>内存</h4>' +
-        '<div class="row"><span class="label">已用 / 总量</span><span class="value">' + data.memory.usedMB + ' / ' + data.memory.totalMB + ' MB</span></div>' +
+        '<div class="row"><span class="label">已用/总量</span><span class="value">' + data.memory.usedMB + ' / ' + data.memory.totalMB + ' MB</span></div>' +
         '<div class="row"><span class="label">可用</span><span class="value">' + data.memory.freeMB + ' MB</span></div>' +
         '<div class="row"><span class="label">使用率</span><span class="value">' + data.memory.usagePercent + '</span></div>' +
-        '<div class="progress-bar"><div class="progress-fill ' + memClass + '" style="width:' + memPct + '%"></div></div>' +
-      '</div>' +
-      '<div class="sys-card"><h4>本机 IP（点击复制）</h4>' +
-        '<div style="margin-top:4px;">' + ipsHtml + '</div>' +
-      '</div>' +
+        '<div class="progress-bar"><div class="progress-fill ' + memCls + '" style="width:' + memPct + '%"></div></div></div>' +
+      '<div class="sys-card"><h4>本机 IP（点击复制）</h4><div style="margin-top:4px;">' + ipsHtml + '</div></div>' +
     '</div>' +
     '<div class="sys-card" style="margin-bottom:20px;"><h4>磁盘</h4>' + disksHtml + '</div>';
 }
 
-function copyText(text) {
-  navigator.clipboard.writeText(text).then(() => {
-    // 简单提示
-  }).catch(() => {});
-}
+function copyText(text) { navigator.clipboard.writeText(text).catch(() => {}); }
 
 function goHome() {
   currentTool = null;
@@ -252,84 +210,69 @@ function goHome() {
     '<div id="homePage"><h2>系统信息</h2>' +
     '<div class="subtitle">本机硬件参数与网络信息（点击左侧标题可返回）</div>' +
     '<div id="systemInfo">' + (systemInfo ? '' : '<div style="color:#95a5a6;">加载中...</div>') + '</div></div>';
-  if (systemInfo) renderSystemInfo(systemInfo);
-  else loadSystemInfo();
+  if (systemInfo) renderSystemInfo(systemInfo); else loadSystemInfo();
 }
 
 function renderToolList() {
-  const list = document.getElementById('toolList');
-  list.innerHTML = tools.map(t =>
+  document.getElementById('toolList').innerHTML = tools.map(t =>
     '<div class="tool-item" data-name="' + t.name + '" onclick="selectTool(\'' + t.name + '\')">' +
-      t.displayName +
-      '<div class="desc">' + t.description + '</div>' +
-    '</div>'
+      t.displayName + '<div class="desc">' + t.description + '</div></div>'
   ).join('');
 }
 
 function selectTool(name) {
   currentTool = tools.find(t => t.name === name);
-  document.querySelectorAll('.tool-item').forEach(el => {
-    el.classList.toggle('active', el.dataset.name === name);
-  });
+  document.querySelectorAll('.tool-item').forEach(el => el.classList.toggle('active', el.dataset.name === name));
   renderMain();
 }
 
 function renderMain() {
   const main = document.getElementById('main');
+  if (currentTool.name === 'excel-viewer') { renderExcelViewer(main); return; }
   const cfg = TOOL_CONFIGS[currentTool.name] || { fields: [] };
-  const formValues = {};
-  cfg.fields.forEach(f => { if (f.default !== undefined) formValues[f.key] = f.default; });
-
-  let localIpHint = '';
+  const fv = {};
+  cfg.fields.forEach(f => { if (f.default !== undefined) fv[f.key] = f.default; });
+  let ipHint = '';
   if (currentTool.name === 'ip-port-checker' && systemInfo && systemInfo.ips && systemInfo.ips.length > 0) {
-    localIpHint = '<div class="local-ips">本机 IP：' +
+    ipHint = '<div class="local-ips">本机 IP：' +
       systemInfo.ips.map(ip => '<span class="ip-chip" onclick="fillIp(\'' + ip.ip + '\')">' + ip.ip + '</span>').join('') +
       ' <span style="color:#95a5a6;">（点击填入）</span></div>';
   }
-
-  main.innerHTML =
-    '<h2>' + currentTool.displayName + '</h2>' +
-    '<div class="subtitle">' + currentTool.description + '</div>' +
-    localIpHint +
-    '<div id="formArea">' + renderForm(cfg, formValues) + '</div>' +
+  main.innerHTML = '<h2>' + currentTool.displayName + '</h2>' +
+    '<div class="subtitle">' + currentTool.description + '</div>' + ipHint +
+    '<div id="formArea">' + renderForm(cfg, fv) + '</div>' +
     '<button class="btn" onclick="execute()">执行</button>' +
     '<div class="result" id="result" style="display:none;"></div>';
-
   cfg.fields.forEach(f => {
     if (f.type === 'select') {
       const el = document.getElementById('field-' + f.key);
       if (el) el.addEventListener('change', () => {
-        formValues[f.key] = el.value;
+        fv[f.key] = el.value;
         document.getElementById('formArea').innerHTML = renderForm(cfg, getFormValues(cfg));
-        bindFormEvents(cfg, formValues);
+        bindFormEvents(cfg, fv);
       });
     }
   });
 }
 
-function fillIp(ip) {
-  document.getElementById('field-ip').value = ip;
-}
+function fillIp(ip) { document.getElementById('field-ip').value = ip; }
 
 function getFormValues(cfg) {
-  const vals = {};
+  const v = {};
   cfg.fields.forEach(f => {
     const el = document.getElementById('field-' + f.key);
-    if (el) {
-      vals[f.key] = f.type === 'checkbox' ? el.checked : el.value;
-    }
+    if (el) v[f.key] = f.type === 'checkbox' ? el.checked : el.value;
   });
-  return vals;
+  return v;
 }
 
-function bindFormEvents(cfg, formValues) {
+function bindFormEvents(cfg, fv) {
   cfg.fields.forEach(f => {
     if (f.type === 'select') {
       const el = document.getElementById('field-' + f.key);
       if (el) el.addEventListener('change', () => {
-        const vals = getFormValues(cfg);
-        document.getElementById('formArea').innerHTML = renderForm(cfg, vals);
-        bindFormEvents(cfg, formValues);
+        document.getElementById('formArea').innerHTML = renderForm(cfg, getFormValues(cfg));
+        bindFormEvents(cfg, fv);
       });
     }
   });
@@ -339,23 +282,12 @@ function renderForm(cfg, values) {
   return cfg.fields.map(f => {
     if (f.showWhen && !f.showWhen(values)) return '';
     const val = values[f.key] !== undefined ? values[f.key] : (f.default || '');
-    if (f.type === 'select') {
-      return '<div class="form-group"><label>' + f.label + '</label>' +
-        '<select id="field-' + f.key + '">' +
-        f.options.map(o => '<option value="' + o.value + '" ' + (o.value === val ? 'selected' : '') + '>' + o.label + '</option>').join('') +
-        '</select></div>';
-    }
-    if (f.type === 'textarea') {
-      return '<div class="form-group"><label>' + f.label + '</label>' +
-        '<textarea id="field-' + f.key + '" placeholder="' + (f.placeholder || '') + '">' + val + '</textarea></div>';
-    }
-    if (f.type === 'checkbox') {
-      return '<div class="form-group checkbox-group">' +
-        '<input type="checkbox" id="field-' + f.key + '" ' + (val ? 'checked' : '') + '>' +
-        '<label for="field-' + f.key + '" style="margin:0;font-weight:normal;">' + f.label + '</label></div>';
-    }
-    return '<div class="form-group"><label>' + f.label + '</label>' +
-      '<input type="text" id="field-' + f.key + '" value="' + val + '" placeholder="' + (f.placeholder || '') + '"></div>';
+    if (f.type === 'select') return '<div class="form-group"><label>' + f.label + '</label><select id="field-' + f.key + '">' +
+      f.options.map(o => '<option value="' + o.value + '" ' + (o.value === val ? 'selected' : '') + '>' + o.label + '</option>').join('') + '</select></div>';
+    if (f.type === 'textarea') return '<div class="form-group"><label>' + f.label + '</label><textarea id="field-' + f.key + '" placeholder="' + (f.placeholder || '') + '">' + val + '</textarea></div>';
+    if (f.type === 'checkbox') return '<div class="form-group checkbox-group"><input type="checkbox" id="field-' + f.key + '" ' + (val ? 'checked' : '') + '>' +
+      '<label for="field-' + f.key + '" style="margin:0;font-weight:normal;">' + f.label + '</label></div>';
+    return '<div class="form-group"><label>' + f.label + '</label><input type="text" id="field-' + f.key + '" value="' + val + '" placeholder="' + (f.placeholder || '') + '"></div>';
   }).join('');
 }
 
@@ -364,29 +296,16 @@ function execute() {
   const params = {};
   cfg.fields.forEach(f => {
     const el = document.getElementById('field-' + f.key);
-    if (el && (!f.showWhen || f.showWhen(getFormValues(cfg)))) {
-      params[f.key] = f.type === 'checkbox' ? el.checked : el.value;
-    }
+    if (el && (!f.showWhen || f.showWhen(getFormValues(cfg)))) params[f.key] = f.type === 'checkbox' ? el.checked : el.value;
   });
-
   const btn = document.querySelector('.btn');
-  btn.disabled = true;
-  btn.textContent = '执行中...';
-
+  btn.disabled = true; btn.textContent = '执行中...';
   fetch('/api/tools/' + currentTool.name + '/execute', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(params)
-  })
-  .then(r => r.json())
-  .then(res => {
-    btn.disabled = false;
-    btn.textContent = '执行';
-    showResult(res);
-  })
-  .catch(e => {
-    btn.disabled = false;
-    btn.textContent = '执行';
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(params)
+  }).then(r => r.json()).then(res => {
+    btn.disabled = false; btn.textContent = '执行'; showResult(res);
+  }).catch(e => {
+    btn.disabled = false; btn.textContent = '执行';
     showResult({ success: false, message: '请求失败: ' + e.message });
   });
 }
@@ -394,20 +313,13 @@ function execute() {
 function showResult(res) {
   const box = document.getElementById('result');
   box.style.display = 'block';
-
   if (!res.success) {
-    box.innerHTML = '<div class="result-header"><h3>结果</h3></div>' +
-      '<div class="result-box error">' + (res.message || '执行失败') + '</div>';
+    box.innerHTML = '<div class="result-header"><h3>结果</h3></div><div class="result-box error">' + (res.message || '执行失败') + '</div>';
     return;
   }
-
-  let content = '';
-  const data = res.data;
-
+  let content = ''; const data = res.data;
   if (currentTool.name === 'timestamp') {
-    content = '<div class="result-box success">时间戳（秒）: ' + data.timestampSec +
-      '\n时间戳（毫秒）: ' + data.timestampMs +
-      '\n日期时间: ' + data.datetime + '</div>';
+    content = '<div class="result-box success">时间戳（秒）: ' + data.timestampSec + '\n时间戳（毫秒）: ' + data.timestampMs + '\n日期时间: ' + data.datetime + '</div>';
   } else if (currentTool.name === 'json-format') {
     const cls = data.valid === false ? 'error' : (data.valid === true ? 'success' : '');
     content = '<div class="result-box ' + cls + '">' + escapeHtml(data.output) + '</div>';
@@ -420,72 +332,52 @@ function showResult(res) {
   } else {
     content = '<div class="result-box">' + escapeHtml(JSON.stringify(data, null, 2)) + '</div>';
   }
-
-  const summary = data.identical ? '完全相同' :
-    (data.diffCount !== undefined ? data.diffCount + ' 处差异' :
+  const summary = data.identical ? '完全相同' : (data.diffCount !== undefined ? data.diffCount + ' 处差异' :
     (data.changeCount !== undefined ? data.changeCount + ' 处变更' :
     (data.openCount !== undefined ? '开放 ' + data.openCount + ' / 共 ' + data.totalCount : '完成')));
-
   box.innerHTML = '<div class="result-header"><h3>结果（' + summary + '）</h3></div>' + content;
 }
 
 function renderPortChecker(data) {
-  let html = '<div class="port-summary">' +
-    '<span style="color:#27ae60;">开放: ' + data.openCount + '</span>' +
-    '<span style="color:#e74c3c;">关闭: ' + data.closedCount + '</span>' +
-    '<span>总计: ' + data.totalCount + '</span>' +
-    '<span>目标: ' + escapeHtml(data.ip) + '</span></div>';
-
-  html += '<div class="port-grid">';
+  let html = '<div class="port-summary"><span style="color:#27ae60;">开放: ' + data.openCount + '</span>' +
+    '<span style="color:#e74c3c;">关闭: ' + data.closedCount + '</span><span>总计: ' + data.totalCount + '</span>' +
+    '<span>目标: ' + escapeHtml(data.ip) + '</span></div><div class="port-grid">';
   data.results.forEach(r => {
-    html += '<div class="port-item ' + (r.open ? 'open' : 'closed') + '">' +
-      '<span class="port-num">' + r.port + '</span>' +
-      '<span class="port-status">' + (r.open ? '开放 ' + r.costMs + 'ms' : '关闭') + '</span>' +
-      '</div>';
+    html += '<div class="port-item ' + (r.open ? 'open' : 'closed') + '"><span class="port-num">' + r.port + '</span>' +
+      '<span class="port-status">' + (r.open ? '开放 ' + r.costMs + 'ms' : '关闭') + '</span></div>';
   });
-  html += '</div>';
-  return html;
+  return html + '</div>';
 }
 
 function renderTextDiff(data) {
-  if (data.identical) {
-    return '<div class="result-box success">两段文本完全相同</div>';
-  }
-  let html = '<div style="margin-bottom:12px;"><strong>Unified Diff:</strong></div>';
-  html += '<div class="result-box" style="margin-bottom:16px;">' + escapeHtml(data.unifiedDiff) + '</div>';
-  html += '<div><strong>差异详情:</strong></div>';
-  html += '<table class="diff-table"><tbody>';
+  if (data.identical) return '<div class="result-box success">两段文本完全相同</div>';
+  let html = '<div style="margin-bottom:12px;"><strong>Unified Diff:</strong></div>' +
+    '<div class="result-box" style="margin-bottom:16px;">' + escapeHtml(data.unifiedDiff) + '</div>' +
+    '<div><strong>差异详情:</strong></div><table class="diff-table"><tbody>';
   data.deltas.forEach(d => {
-    const tagClass = 'tag-' + d.type;
-    const tagLabel = d.type === 'INSERT' ? '新增' : d.type === 'DELETE' ? '删除' : d.type === 'CHANGE' ? '修改' : d.type;
+    const tagCls = 'tag-' + d.type;
+    const tagLbl = d.type === 'INSERT' ? '新增' : d.type === 'DELETE' ? '删除' : d.type === 'CHANGE' ? '修改' : d.type;
     html += '<tr class="' + (d.type === 'INSERT' ? 'add' : d.type === 'DELETE' ? 'del' : 'change') + '">' +
       '<td class="ln">' + (d.sourcePosition + 1) + '</td>' +
-      '<td><span class="diff-tag ' + tagClass + '">' + tagLabel + '</span></td>' +
+      '<td><span class="diff-tag ' + tagCls + '">' + tagLbl + '</span></td>' +
       '<td>' + (d.type === 'DELETE' || d.type === 'CHANGE' ? escapeHtml(d.sourceLines.join('\n')) : '') + '</td>' +
-      '<td>' + (d.type === 'INSERT' || d.type === 'CHANGE' ? escapeHtml(d.targetLines.join('\n')) : '') + '</td>' +
-      '</tr>';
+      '<td>' + (d.type === 'INSERT' || d.type === 'CHANGE' ? escapeHtml(d.targetLines.join('\n')) : '') + '</td></tr>';
   });
-  html += '</tbody></table>';
-  return html;
+  return html + '</tbody></table>';
 }
 
 function renderJsonCompare(data) {
-  if (data.identical) {
-    return '<div class="result-box success">两个 JSON 完全相同</div>';
-  }
+  if (data.identical) return '<div class="result-box success">两个 JSON 完全相同</div>';
   let html = '<table class="diff-table"><tbody>';
   data.differences.forEach(d => {
-    const typeLabel = d.type === 'ADDED' ? '新增' : d.type === 'REMOVED' ? '删除' : d.type === 'VALUE_CHANGE' ? '值不同' : '类型不同';
-    const tagClass = d.type === 'ADDED' ? 'tag-ADD' : d.type === 'REMOVED' ? 'tag-DELETE' : 'tag-CHANGE';
-    html += '<tr>' +
-      '<td><span class="diff-tag ' + tagClass + '">' + typeLabel + '</span></td>' +
+    const lbl = d.type === 'ADDED' ? '新增' : d.type === 'REMOVED' ? '删除' : d.type === 'VALUE_CHANGE' ? '值不同' : '类型不同';
+    const cls = d.type === 'ADDED' ? 'tag-ADD' : d.type === 'REMOVED' ? 'tag-DELETE' : 'tag-CHANGE';
+    html += '<tr><td><span class="diff-tag ' + cls + '">' + lbl + '</span></td>' +
       '<td class="diff-path">' + escapeHtml(d.path) + '</td>' +
       '<td class="diff-old">' + (d.oldValue !== null ? escapeHtml(String(d.oldValue)) : '—') + '</td>' +
-      '<td class="diff-new">' + (d.newValue !== null ? escapeHtml(String(d.newValue)) : '—') + '</td>' +
-      '</tr>';
+      '<td class="diff-new">' + (d.newValue !== null ? escapeHtml(String(d.newValue)) : '—') + '</td></tr>';
   });
-  html += '</tbody></table>';
-  return html;
+  return html + '</tbody></table>';
 }
 
 function escapeHtml(str) {
@@ -493,6 +385,149 @@ function escapeHtml(str) {
   const div = document.createElement('div');
   div.textContent = str;
   return div.innerHTML;
+}
+
+// ========== Excel 浏览工具 ==========
+let excelState = { fileId: null, fileName: null, sheets: [], currentSheet: 0, currentPage: 1, pageSize: 100 };
+
+function renderExcelViewer(main) {
+  main.innerHTML = '<h2>' + currentTool.displayName + '</h2>' +
+    '<div class="subtitle">' + currentTool.description + '</div><div id="excelContent"></div>';
+  if (!excelState.fileId) renderExcelUpload(); else renderExcelWorkspace();
+}
+
+function renderExcelUpload() {
+  document.getElementById('excelContent').innerHTML =
+    '<div class="upload-area" id="uploadArea" onclick="document.getElementById(\'excelFileInput\').click()">' +
+      '<div class="icon">📊</div><div class="text">点击或拖拽 Excel 文件到此处</div>' +
+      '<div class="hint">支持 .xlsx / .xls，最大 50MB</div>' +
+      '<input type="file" id="excelFileInput" accept=".xlsx,.xls" style="display:none" onchange="handleExcelFile(this.files[0])">' +
+    '</div>';
+  const area = document.getElementById('uploadArea');
+  area.addEventListener('dragover', e => { e.preventDefault(); area.classList.add('dragover'); });
+  area.addEventListener('dragleave', () => area.classList.remove('dragover'));
+  area.addEventListener('drop', e => {
+    e.preventDefault(); area.classList.remove('dragover');
+    if (e.dataTransfer.files.length > 0) handleExcelFile(e.dataTransfer.files[0]);
+  });
+}
+
+function handleExcelFile(file) {
+  if (!file) return;
+  const fd = new FormData(); fd.append('file', file);
+  document.getElementById('excelContent').innerHTML =
+    '<div style="text-align:center;padding:40px;color:#7f8c8d;">解析中... ' + escapeHtml(file.name) + '</div>';
+  fetch('/api/excel/upload', { method: 'POST', body: fd }).then(r => r.json()).then(res => {
+    if (!res.success) {
+      document.getElementById('excelContent').innerHTML = '<div class="result-box error" style="margin-top:10px;">' + escapeHtml(res.message) + '</div>';
+      setTimeout(renderExcelUpload, 2000); return;
+    }
+    excelState.fileId = res.fileId; excelState.fileName = res.fileName;
+    excelState.sheets = res.sheets; excelState.currentSheet = 0; excelState.currentPage = 1;
+    renderExcelWorkspace(); loadExcelSheet(0, 1);
+  }).catch(e => {
+    document.getElementById('excelContent').innerHTML = '<div class="result-box error" style="margin-top:10px;">上传失败: ' + e.message + '</div>';
+  });
+}
+
+function renderExcelWorkspace() {
+  const sheet = excelState.sheets[excelState.currentSheet];
+  let tabs = '<div class="sheet-tabs">';
+  excelState.sheets.forEach((s, i) => {
+    tabs += '<div class="sheet-tab' + (i === excelState.currentSheet ? ' active' : '') + '" onclick="switchExcelSheet(' + i + ')">' +
+      escapeHtml(s.name) + ' <span style="color:#95a5a6;font-size:11px;">(' + s.totalRows + '行)</span></div>';
+  });
+  tabs += '</div>';
+  document.getElementById('excelContent').innerHTML =
+    '<div class="excel-toolbar"><span><strong>' + escapeHtml(excelState.fileName) + '</strong> — ' +
+      sheet.totalRows + ' 行 × ' + sheet.totalCols + ' 列</span>' +
+      '<button class="btn btn-sm" onclick="resetExcel()">重新上传</button></div>' + tabs +
+    '<div id="excelTableContainer"><div style="text-align:center;padding:30px;color:#95a5a6;">加载中...</div></div>' +
+    '<div class="excel-pagination" id="excelPagination"></div>';
+}
+
+function switchExcelSheet(i) {
+  excelState.currentSheet = i; excelState.currentPage = 1;
+  renderExcelWorkspace(); loadExcelSheet(i, 1);
+}
+
+function loadExcelSheet(sheetIndex, page) {
+  fetch('/api/excel/' + excelState.fileId + '/sheet/' + sheetIndex + '?page=' + page + '&size=' + excelState.pageSize)
+    .then(r => r.json()).then(res => {
+      if (!res.success) {
+        document.getElementById('excelTableContainer').innerHTML = '<div class="result-box error">' + escapeHtml(res.message) + '</div>';
+        return;
+      }
+      excelState.currentPage = res.page;
+      renderExcelTable(res); renderExcelPagination(res);
+    }).catch(e => {
+      document.getElementById('excelTableContainer').innerHTML = '<div class="result-box error">加载失败: ' + e.message + '</div>';
+    });
+}
+
+function renderExcelTable(data) {
+  const rows = data.rows || [], totalCols = data.totalCols || 0, merged = data.mergedRegions || [];
+  const covered = {}, mergedMap = {};
+  merged.forEach(m => {
+    mergedMap[m.firstRow + '-' + m.firstCol] = m;
+    for (let r = m.firstRow; r <= m.lastRow; r++)
+      for (let c = m.firstCol; c <= m.lastCol; c++)
+        if (r !== m.firstRow || c !== m.firstCol) covered[r + '-' + c] = true;
+  });
+  let thead = '<tr><th style="width:50px;">#</th>';
+  for (let c = 0; c < totalCols; c++) {
+    let label = '', n = c;
+    do { label = String.fromCharCode(65 + n % 26) + label; n = Math.floor(n / 26) - 1; } while (n >= 0);
+    let w = data.columnWidths && data.columnWidths[c] ? 'width:' + data.columnWidths[c] + 'px;' : '';
+    thead += '<th style="' + w + '">' + label + '</th>';
+  }
+  thead += '</tr>';
+  let tbody = '';
+  rows.forEach(row => {
+    const ri = row.rowIndex;
+    tbody += '<tr><th>' + (ri + 1) + '</th>';
+    const cells = row.cells || [];
+    for (let c = 0; c < totalCols; c++) {
+      if (covered[ri + '-' + c]) continue;
+      const cell = cells[c], m = mergedMap[ri + '-' + c];
+      let attrs = '';
+      if (m) {
+        const rs = m.lastRow - m.firstRow + 1, cs = m.lastCol - m.firstCol + 1;
+        if (rs > 1) attrs += ' rowspan="' + rs + '"';
+        if (cs > 1) attrs += ' colspan="' + cs + '"';
+      }
+      let style = '', val = '';
+      if (cell) {
+        val = cell.value || '';
+        if (cell.style) {
+          if (cell.style.bold) style += 'font-weight:bold;';
+          if (cell.style.fontSize) style += 'font-size:' + cell.style.fontSize + 'pt;';
+          if (cell.style.bgColor) style += 'background-color:#' + cell.style.bgColor + ';';
+          if (cell.style.fontColor) style += 'color:#' + cell.style.fontColor + ';';
+          if (cell.style.alignment) style += 'text-align:' + cell.style.alignment + ';';
+        }
+      }
+      tbody += '<td' + attrs + ' style="' + style + '" title="' + escapeHtml(val) + '">' + escapeHtml(val) + '</td>';
+    }
+    tbody += '</tr>';
+  });
+  document.getElementById('excelTableContainer').innerHTML =
+    '<div class="excel-table-wrap"><table class="excel-table"><thead>' + thead + '</thead><tbody>' + tbody + '</tbody></table></div>';
+}
+
+function renderExcelPagination(data) {
+  const pag = document.getElementById('excelPagination');
+  if (!pag) return;
+  const tp = data.totalPages || 1, pg = data.page || 1;
+  pag.innerHTML = '<button onclick="loadExcelSheet(' + excelState.currentSheet + ',' + (pg - 1) + ')"' + (pg <= 1 ? ' disabled' : '') + '>上一页</button>' +
+    '<span class="page-info">第 ' + pg + ' / ' + tp + ' 页（每页 ' + excelState.pageSize + ' 行）</span>' +
+    '<button onclick="loadExcelSheet(' + excelState.currentSheet + ',' + (pg + 1) + ')"' + (pg >= tp ? ' disabled' : '') + '>下一页</button>';
+}
+
+function resetExcel() {
+  if (excelState.fileId) fetch('/api/excel/' + excelState.fileId, { method: 'DELETE' }).catch(() => {});
+  excelState = { fileId: null, fileName: null, sheets: [], currentSheet: 0, currentPage: 1, pageSize: 100 };
+  renderExcelViewer(document.getElementById('main'));
 }
 </script>
 </body>
