@@ -18,10 +18,14 @@ GitHub Actions 固定 Java 8：
 
 验证：
 
-- Integer / Long / BigDecimal / Boolean / String / null
+- Integer / Long / BigInteger / BigDecimal / Boolean / String / null
 - JSONObject 嵌套对象
 - JSONArray 标量数组
 - JSONArray 对象数组
+- 多维数组 / TypeReference Mapping
+- 空数组 / 空对象
+- 超出 Long 的大整数
+- 特殊 JSON key（引号、反斜杠）
 - 多个对象样本字段合并
 - 混合数组回退 List<Object>
 - snake_case / kebab-case
@@ -32,6 +36,7 @@ GitHub Actions 固定 Java 8：
 对应：
 
     JsonEntitySchemaInfererTest
+    JsonEntityRegressionTest
 
 #### B. 生成源码编译测试
 
@@ -76,7 +81,38 @@ Lombok 仅为测试依赖，不进入 toolbox 运行时。
       -> generated entity
       -> actual field values
 
-## 2. MyBatis Generator 默认测试
+## 2. Excel -> Java Entity
+
+Excel 测试不能只手工构造 EntitySchema。
+
+JUnit 会在内存创建真实 `.xlsx`：
+
+    XSSFWorkbook
+      -> byte[]
+      -> ExcelParser / Apache POI
+      -> ExcelSheet
+      -> ExcelEntitySchemaParser
+      -> Normal/Lombok source
+      -> Java 8 javac
+
+验证：
+
+- headerRow / typeRow / commentRow 可配置
+- Oracle/DM 常见类型映射
+- NUMBER(p,s) 精度/scale 路径
+- DATE / TIMESTAMP
+- Java keyword / UPPER_SNAKE_CASE
+- 字段注释和 `*/` 安全处理
+- Normal 源码真实编译
+- Lombok 源码真实 annotation processing + 编译
+- Excel session API 能真正输出源码
+
+对应：
+
+    ExcelEntitySchemaParserTest
+    ExcelEntityControllerTest
+
+## 3. MyBatis Generator 默认测试
 
 默认 CI 不携带 Oracle / DM 厂商驱动。
 
@@ -93,7 +129,7 @@ Lombok 仅为测试依赖，不进入 toolbox 运行时。
 
     MyBatisGeneratorServiceTest
 
-## 3. Oracle / DM 真实数据库测试
+## 4. Oracle / DM 真实数据库测试
 
 真实数据库不能用 H2 替代。
 
@@ -145,7 +181,7 @@ Git Bash 示例：
 
     mvn -Dtest=MyBatisGeneratorRealDatabaseTest#oracleShouldGenerateAgainstRealDatabaseWhenEnvironmentIsProvided test
 
-## 4. 达梦 SQL 血缘测试（下一阶段）
+## 5. 达梦 SQL 血缘测试（下一阶段）
 
 SQL lineage 不接受“手工看一下结果”。
 
@@ -188,7 +224,7 @@ Batch 再独立测试：
 3. 修复
 4. 确认全 corpus 绿
 
-## 5. 可交付门槛
+## 6. 可交付门槛
 
 ### JSON / Entity Generator
 
