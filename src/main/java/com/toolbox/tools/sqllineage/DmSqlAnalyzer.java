@@ -6,6 +6,7 @@ import com.alibaba.druid.sql.ast.SQLStatement;
 import com.alibaba.druid.sql.visitor.SchemaStatVisitor;
 import com.alibaba.druid.stat.TableStat;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -93,10 +94,13 @@ public class DmSqlAnalyzer {
         }
 
         batch.setTotal(inputs.size());
+        Map<String, TableLineageEdge> edges = new LinkedHashMap<String, TableLineageEdge>();
 
         for (SqlInput input : inputs) {
             SqlAnalysisResult result = analyze(input);
             batch.getResults().add(result);
+            batch.getReadTables().addAll(result.getReadTables());
+            batch.getWriteTables().addAll(result.getWriteTables());
 
             if (result.getStatus() == SqlParseStatus.SUCCESS) {
                 batch.setSuccess(batch.getSuccess() + 1);
@@ -107,9 +111,34 @@ public class DmSqlAnalyzer {
             } else {
                 batch.setFailed(batch.getFailed() + 1);
             }
+
+            if (result.getStatus() == SqlParseStatus.SUCCESS
+                    || result.getStatus() == SqlParseStatus.PARTIAL) {
+                for (String sourceTable : result.getReadTables()) {
+                    for (String targetTable : result.getWriteTables()) {
+                        if (sameTable(sourceTable, targetTable)) continue;
+                        String key = normalize(sourceTable) + "->" + normalize(targetTable);
+                        TableLineageEdge edge = edges.get(key);
+                        if (edge == null) {
+                            edge = new TableLineageEdge(sourceTable, targetTable);
+                            edges.put(key, edge);
+                        }
+                        edge.addSqlId(result.getSqlId());
+                    }
+                }
+            }
         }
 
+        batch.getTableLineageEdges().addAll(edges.values());
         return batch;
+    }
+
+    private boolean sameTable(String left, String right) {
+        return normalize(left).equals(normalize(right));
+    }
+
+    private String normalize(String value) {
+        return value == null ? "" : value.trim().toLowerCase(Locale.ROOT);
     }
 
     private String statementType(SQLStatement statement) {

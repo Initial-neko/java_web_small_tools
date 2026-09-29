@@ -1,9 +1,9 @@
 @echo off
 chcp 65001 >nul
-title Toolbox
+title Toolbox (classpath mode)
 echo ========================================
-echo   Toolbox 本地工具集
+echo   Toolbox 本地工具集 - lib classpath
 echo ========================================
 echo.
-java -jar toolbox-exec.jar
+java -cp "lib\*" com.toolbox.ToolboxApplication
 pause

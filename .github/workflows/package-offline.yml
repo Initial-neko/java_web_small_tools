@@ -1,0 +1,33 @@
+name: Offline Package
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 8
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '8'
+          cache: maven
+
+      - name: Build tested offline package
+        run: bash scripts/package-offline.sh
+
+      - name: Upload offline ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: java-web-small-tools-offline-${{ github.sha }}
+          path: target/release/java-web-small-tools-offline.zip
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 30

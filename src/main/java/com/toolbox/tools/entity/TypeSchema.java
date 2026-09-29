@@ -46,7 +46,9 @@ public class TypeSchema {
             case BIG_DECIMAL: return "BigDecimal";
             case BOOLEAN: return "Boolean";
             case LOCAL_DATE: return "LocalDate";
+            case LOCAL_TIME: return "LocalTime";
             case LOCAL_DATE_TIME: return "LocalDateTime";
+            case BYTE_ARRAY: return "byte[]";
             case OBJECT: return objectSchema == null ? "Object" : objectSchema.getClassName();
             case LIST: return "List<" + itemType.toJavaType() + ">";
             default: return "Object";

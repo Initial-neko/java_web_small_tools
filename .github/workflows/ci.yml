@@ -20,3 +20,5 @@ jobs:
           cache: maven
       - name: Test
         run: mvn -B test
+      - name: Verify offline package
+        run: bash scripts/package-offline.sh --skip-tests

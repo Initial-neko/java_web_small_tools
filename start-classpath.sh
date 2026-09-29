@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
 echo "========================================"
-echo "  Toolbox 本地工具集"
+echo "  Toolbox 本地工具集 - lib classpath"
 echo "========================================"
-java -jar toolbox-exec.jar
+java -cp "lib/*" com.toolbox.ToolboxApplication

@@ -150,6 +150,34 @@ const TOOL_CONFIGS = {
     { key: 'packageName', label: '包名', type: 'text', default: 'com.example.model', showWhen: f => f.mode !== 'mapping' },
     { key: 'input', label: 'JSON 样本', type: 'textarea', placeholder: '{"user_id":1,"name":"Alice","orders":[{"id":1}]}' }
   ]},
+  'ddl-to-java': { fields: [
+    { key: 'databaseType', label: 'DDL 方言', type: 'select', options: [
+      { value: 'dm', label: '达梦 DM' },
+      { value: 'oracle', label: 'Oracle' }]},
+    { key: 'mode', label: '输出模式', type: 'select', options: [
+      { value: 'normal', label: 'Normal Java Entity' },
+      { value: 'lombok', label: 'Lombok @Data Entity' }]},
+    { key: 'className', label: '类名（留空则按表名生成）', type: 'text' },
+    { key: 'packageName', label: '包名', type: 'text', default: 'com.example.model' },
+    { key: 'ddl', label: 'CREATE TABLE DDL', type: 'textarea', placeholder: 'CREATE TABLE APP.T_ORDER (ID NUMBER(10,0), NAME VARCHAR2(100))' }
+  ]},
+  'jdbc-query-to-java': { fields: [
+    { key: 'databaseType', label: '数据库类型', type: 'select', options: [
+      { value: 'dm', label: '达梦 DM' },
+      { value: 'oracle', label: 'Oracle' },
+      { value: 'custom', label: '其他 JDBC 数据库' }]},
+    { key: 'driverJars', label: 'JDBC Driver Jar 路径', type: 'text', placeholder: '如 drivers/DmJdbcDriver8.jar；多个用 ; 分隔' },
+    { key: 'driverClass', label: 'Driver Class（自定义数据库）', type: 'text', showWhen: f => f.databaseType === 'custom', placeholder: '如 org.postgresql.Driver' },
+    { key: 'jdbcUrl', label: 'JDBC URL', type: 'text' },
+    { key: 'username', label: '用户名', type: 'text' },
+    { key: 'password', label: '密码', type: 'password' },
+    { key: 'sql', label: 'SELECT / WITH 查询', type: 'textarea', placeholder: 'SELECT ID, NAME, AMOUNT FROM APP.T_ORDER' },
+    { key: 'className', label: '类名', type: 'text', default: 'QueryResult' },
+    { key: 'packageName', label: '包名', type: 'text', default: 'com.example.model' },
+    { key: 'mode', label: '输出模式', type: 'select', options: [
+      { value: 'normal', label: 'Normal Java Entity' },
+      { value: 'lombok', label: 'Lombok @Data Entity' }]}
+  ]},
   'text-diff': { fields: [
     { key: 'textA', label: '原始文本（A）', type: 'textarea' },
     { key: 'textB', label: '对比文本（B）', type: 'textarea' },
@@ -168,6 +196,9 @@ const TOOL_CONFIGS = {
     { key: 'sqlId', label: 'SQL ID', type: 'text', default: 'manual' },
     { key: 'source', label: '来源（可选）', type: 'text', default: 'toolbox' },
     { key: 'sql', label: '达梦 SQL', type: 'textarea', placeholder: 'SELECT a.ID FROM APP.ODS_ORDER a WHERE a.STATUS = 1' }
+  ]},
+  'dm-sql-batch': { fields: [
+    { key: 'input', label: '批量 SQL', type: 'textarea', placeholder: '[{"sqlId":"sql-1","source":"job-a","sql":"SELECT ID FROM APP.T_ORDER"}]\n\n也可使用多段文本，每条 SQL 之间用单独一行 -- @SQL 分隔。' }
   ]},
   'mybatis-generator': { fields: [
     { key: 'databaseType', label: '数据库类型', type: 'select', options: [
