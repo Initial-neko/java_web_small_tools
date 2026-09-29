@@ -136,12 +136,23 @@ final class GeneratedSourceCompiler {
     }
 
     private static String javacExecutable() {
-        File bin = new File(System.getProperty("java.home"), "bin");
-        File javac = new File(bin, isWindows() ? "javac.exe" : "javac");
-        if (!javac.isFile()) {
-            throw new IllegalStateException("未找到 javac: " + javac.getAbsolutePath());
+        String executable = isWindows() ? "javac.exe" : "javac";
+        File javaHome = new File(System.getProperty("java.home"));
+
+        File direct = new File(new File(javaHome, "bin"), executable);
+        if (direct.isFile()) {
+            return direct.getAbsolutePath();
         }
-        return javac.getAbsolutePath();
+
+        File parent = javaHome.getParentFile();
+        if (parent != null) {
+            File jdkLayout = new File(new File(parent, "bin"), executable);
+            if (jdkLayout.isFile()) {
+                return jdkLayout.getAbsolutePath();
+            }
+        }
+
+        throw new IllegalStateException("未找到 javac，java.home=" + javaHome.getAbsolutePath());
     }
 
     private static boolean isWindows() {
