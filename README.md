@@ -15,6 +15,7 @@
 | JSON 格式化 | `json-format` | 美化、压缩、校验、转义/反转义 |
 | 文本 Diff | `text-diff` | 两段文本按行对比，输出 unified diff 与差异详情 |
 | JSON 对比 | `json-compare` | 两个 JSON 结构化对比，按路径输出差异 |
+| JSON → Java | `json-to-java` | Fastjson2 JSON 样本生成 Normal/Lombok Entity 或显式 Mapping Code |
 | IP 端口检测 | `ip-port-checker` | 检测指定 IP 的端口是否开放，支持多端口和端口范围 |
 | Excel 浏览 | `excel-viewer` | 上传 Excel 网页分页浏览，支持多 sheet、合并单元格、样式保留 |
 | MyBatis Generator | `mybatis-generator` | 数据库表生成 Java Model / Mapper / XML；外置 JDBC Driver，优先验证 Oracle / 达梦 |
@@ -45,7 +46,7 @@ Windows 双击 `start.bat`，Linux/Mac 执行 `./start.sh`。
 
 ## 技术栈
 - Java 8 + Spring Boot 2.7.18
-- Fastjson 1.2.84（工具侧 JSON 处理）
+- Fastjson2 2.0.65（工具侧 JSON 处理）
 - MyBatis Generator 1.4.2（Java 8 数据库代码生成）
 - java-diff-utils 4.12（文本 Diff）
 - Apache POI 5.2.5（Excel 解析）
