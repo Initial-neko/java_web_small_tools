@@ -267,3 +267,50 @@ Batch 再独立测试：
     failed
 
 作为每次升级 Druid 或修改 Resolver 的回归指标。
+
+
+## 7. DDL / JDBC Query Generator
+
+### DDL
+
+JUnit：
+
+    DdlEntitySchemaParserTest
+
+验证：
+
+- DM CREATE TABLE
+- Oracle CREATE TABLE
+- NUMBER(p,s)
+- VARCHAR2 / DATE / TIMESTAMP / BLOB
+- 生成 Java 源码后 Java 8 javac 真编译
+- 非 CREATE TABLE 输入拒绝
+
+### JDBC Query
+
+JUnit：
+
+    JdbcQueryEntityGeneratorTest
+
+不依赖 H2，而是提供测试 Fake java.sql.Driver，走完整链路：
+
+    Driver
+      -> Connection
+      -> PreparedStatement
+      -> ResultSet
+      -> ResultSetMetaData
+      -> EntitySchema
+      -> Java source
+      -> Java 8 javac
+
+同时验证非 SELECT/WITH 查询会被拒绝。
+
+真实 DM/Oracle Driver + Database 由内网验收。
+
+## 8. Offline ZIP
+
+普通 CI 除 mvn test 外，还必须执行：
+
+    bash scripts/package-offline.sh --skip-tests
+
+因此每次 PR 都会验证 thin jar、fat jar、runtime lib 收集和 ZIP 生成没有断裂。
