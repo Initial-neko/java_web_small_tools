@@ -38,10 +38,11 @@ class DmSqlAnalyzerFixtureTest {
 
             SqlAnalysisResult actual = analyzer.analyze(new SqlInput(name, sql));
 
-            assertEquals(
-                    SqlParseStatus.valueOf(expected.getString("status")),
-                    actual.getStatus(),
-                    name + " status");
+            SqlParseStatus expectedStatus = SqlParseStatus.valueOf(expected.getString("status"));
+            assertEquals(expectedStatus, actual.getStatus(), name + " status");
+            if (expectedStatus == SqlParseStatus.PARSE_FAILED) {
+                assertTrue(!actual.getErrors().isEmpty(), name + " parse failure must contain error");
+            }
 
             JSONArray types = expected.getJSONArray("statementTypes");
             assertEquals(types.size(), actual.getStatementTypes().size(), name + " statement type count");
