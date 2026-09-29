@@ -1,8 +1,8 @@
 package com.toolbox.tools.json;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONException;
-import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONException;
+import com.alibaba.fastjson2.JSONWriter;
 import com.toolbox.core.Tool;
 import com.toolbox.core.ToolResult;
 import org.springframework.stereotype.Component;
@@ -46,7 +46,7 @@ public class JsonFormatTool implements Tool {
 
             if ("format".equals(action)) {
                 Object value = JSON.parse(input);
-                data.put("output", JSON.toJSONString(value, SerializerFeature.PrettyFormat));
+                data.put("output", JSON.toJSONString(value, JSONWriter.Feature.PrettyFormat));
                 return ToolResult.ok(data);
             }
 
