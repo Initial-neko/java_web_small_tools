@@ -1,6 +1,6 @@
 {
-  "status": "SUCCESS",
-  "statementTypes": ["SELECT"],
-  "containsReadTables": ["APP.PROJECT_ITEM"],
+  "status": "PARSE_FAILED",
+  "statementTypes": [],
+  "containsReadTables": [],
   "containsWriteTables": []
 }
