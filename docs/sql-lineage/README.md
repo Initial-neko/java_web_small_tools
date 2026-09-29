@@ -257,3 +257,73 @@ Druid 依赖版本必须固定，不用 LATEST。
 4. 再决定是否升级
 
 内网发布时与 Maven 依赖一起进入 offline-repo / 内部 Nexus。
+
+
+# 当前实现状态（2026-09-29）
+
+第一阶段 SQL Analyze Core 已开始落地：
+
+    DmSqlAnalyzer
+    DmSqlAnalyzeTool
+    SqlInput
+    SqlAnalysisResult
+    BatchSqlAnalysisResult
+
+当前能力：
+
+- 固定使用 `DbType.dm`
+- Druid 解析 SQL AST
+- Statement 类型识别
+- SchemaStatVisitor 收集表/字段
+- 区分 readTables / writeTables
+- Batch 输入逐条故障隔离
+- 保留 sqlId / source / fileName
+- 输出 parseMillis / warnings / errors
+
+当前明确未实现：
+
+- 字段表达式到目标字段的 lineage resolver
+- SELECT * 元数据展开
+- Local lineage edge
+- Global lineage aggregator
+- 跨 SQL 字段链
+- Excel/JSON lineage export
+
+## 当前 DM fixture corpus
+
+目录：
+
+    src/test/resources/sql/dm/
+
+当前包含：
+
+- SELECT + JOIN
+- INSERT ... SELECT
+- LISTAGG ... WITHIN GROUP
+- MERGE
+- 非法 SQL
+
+每个 SQL 都有配套：
+
+    *.expected.json
+
+JUnit 会验证：
+
+- parse status
+- statement type
+- 关键 read tables
+- 关键 write tables
+
+同时额外验证：
+
+    3 条 SQL
+      2 条合法
+      1 条非法
+
+结果必须：
+
+    total = 3
+    success = 2
+    failed = 1
+
+非法 SQL 不允许中断另外两条分析。
