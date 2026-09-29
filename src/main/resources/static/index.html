@@ -20,7 +20,7 @@
   .main .subtitle { color: #7f8c8d; font-size: 13px; margin-bottom: 24px; }
   .form-group { margin-bottom: 16px; }
   .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #34495e; }
-  .form-group input[type="text"], .form-group select, .form-group textarea {
+  .form-group input[type="text"], .form-group input[type="password"], .form-group select, .form-group textarea {
     width: 100%; padding: 8px 12px; border: 1px solid #bdc3c7; border-radius: 4px;
     font-size: 13px; font-family: inherit; background: #fff;
   }
@@ -154,6 +154,28 @@ const TOOL_CONFIGS = {
     { key: 'ip', label: 'IP 地址或域名', type: 'text', placeholder: '如 127.0.0.1 或 github.com' },
     { key: 'ports', label: '端口（支持 80,443,8000-9000 混合）', type: 'text', placeholder: '80,443,8080 或 1-1000' },
     { key: 'timeout', label: '超时时间（毫秒）', type: 'text', default: '3000' }
+  ]},
+  'mybatis-generator': { fields: [
+    { key: 'databaseType', label: '数据库类型', type: 'select', options: [
+      { value: 'dm', label: '达梦 DM' },
+      { value: 'oracle', label: 'Oracle' },
+      { value: 'custom', label: '其他 JDBC 数据库' }]},
+    { key: 'driverJars', label: 'JDBC Driver Jar 路径', type: 'text', placeholder: '如 drivers/DmJdbcDriver8.jar；多个用 ; 分隔' },
+    { key: 'driverClass', label: 'Driver Class（自定义数据库）', type: 'text', showWhen: f => f.databaseType === 'custom', placeholder: '如 org.postgresql.Driver' },
+    { key: 'jdbcUrl', label: 'JDBC URL', type: 'text', placeholder: 'DM: jdbc:dm://host:5236；Oracle: jdbc:oracle:thin:@//host:1521/service' },
+    { key: 'username', label: '用户名', type: 'text' },
+    { key: 'password', label: '密码', type: 'password' },
+    { key: 'schema', label: 'Schema（可选）', type: 'text', placeholder: 'Oracle/DM 通常填写实际 schema，注意大小写' },
+    { key: 'tables', label: '表名', type: 'textarea', placeholder: '一行一个，也支持逗号/分号和 JDBC 通配符，例如 T_ORDER,T_CUSTOMER' },
+    { key: 'modelPackage', label: 'Model 包名', type: 'text', default: 'com.example.model' },
+    { key: 'mapperPackage', label: 'Mapper 包名', type: 'text', default: 'com.example.mapper' },
+    { key: 'xmlPackage', label: 'Mapper XML 目录', type: 'text', default: 'mapper' },
+    { key: 'outputDir', label: '输出目录', type: 'text', default: './generated/mybatis' },
+    { key: 'overwrite', label: '覆盖已生成文件', type: 'checkbox', default: true },
+    { key: 'addRemarkComments', label: '生成数据库字段备注', type: 'checkbox', default: true },
+    { key: 'forceBigDecimals', label: 'DECIMAL/NUMERIC 强制使用 BigDecimal', type: 'checkbox' },
+    { key: 'trimStrings', label: 'String setter 自动 trim', type: 'checkbox' },
+    { key: 'useActualColumnNames', label: 'Java 属性直接使用数据库字段名', type: 'checkbox' }
   ]}
 };
 
@@ -287,6 +309,7 @@ function renderForm(cfg, values) {
     if (f.type === 'textarea') return '<div class="form-group"><label>' + f.label + '</label><textarea id="field-' + f.key + '" placeholder="' + (f.placeholder || '') + '">' + val + '</textarea></div>';
     if (f.type === 'checkbox') return '<div class="form-group checkbox-group"><input type="checkbox" id="field-' + f.key + '" ' + (val ? 'checked' : '') + '>' +
       '<label for="field-' + f.key + '" style="margin:0;font-weight:normal;">' + f.label + '</label></div>';
+    if (f.type === 'password') return '<div class="form-group"><label>' + f.label + '</label><input type="password" id="field-' + f.key + '" value="' + val + '" placeholder="' + (f.placeholder || '') + '"></div>';
     return '<div class="form-group"><label>' + f.label + '</label><input type="text" id="field-' + f.key + '" value="' + val + '" placeholder="' + (f.placeholder || '') + '"></div>';
   }).join('');
 }
