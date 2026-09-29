@@ -181,11 +181,11 @@ Git Bash 示例：
 
     mvn -Dtest=MyBatisGeneratorRealDatabaseTest#oracleShouldGenerateAgainstRealDatabaseWhenEnvironmentIsProvided test
 
-## 5. 达梦 SQL 血缘测试（下一阶段）
+## 5. 达梦 SQL 分析 / 血缘测试
 
 SQL lineage 不接受“手工看一下结果”。
 
-计划建立：
+当前已建立：
 
     src/test/resources/sql/dm/
 
@@ -196,11 +196,18 @@ SQL lineage 不接受“手工看一下结果”。
 
 JUnit 参数化扫描整个 corpus。
 
-至少断言：
+当前 Core 已断言：
 
 - parse status
+- statement types
 - read tables
 - write tables
+- SQL ID / source 保留
+- batch fault isolation
+- 多 Statement 输入
+
+后续 Lineage Resolver 再追加：
+
 - table lineage edges
 - column lineage edges
 - warnings

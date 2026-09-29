@@ -26,6 +26,7 @@
         <fastjson2.version>2.0.65</fastjson2.version>
         <lombok.version>1.18.48</lombok.version>
         <mybatis.generator.version>1.4.2</mybatis.generator.version>
+        <druid.version>1.2.28</druid.version>
     </properties>
 
     <dependencies>
@@ -46,6 +47,13 @@
             <groupId>org.mybatis.generator</groupId>
             <artifactId>mybatis-generator-core</artifactId>
             <version>${mybatis.generator.version}</version>
+        </dependency>
+
+        <!-- SQL 解析仅使用 Druid core；DM 方言由 DbType.dm / DmStatementParser 提供 -->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>druid</artifactId>
+            <version>${druid.version}</version>
         </dependency>
 
         <!-- 仅用于验证“生成出来的 Lombok 源码”确实可以被 Java 8 编译 -->

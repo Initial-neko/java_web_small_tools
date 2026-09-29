@@ -257,3 +257,95 @@ Druid 依赖版本必须固定，不用 LATEST。
 4. 再决定是否升级
 
 内网发布时与 Maven 依赖一起进入 offline-repo / 内部 Nexus。
+
+
+# 当前实现状态（2026-09-29）
+
+第一阶段 SQL Analyze Core 已开始落地：
+
+    DmSqlAnalyzer
+    DmSqlAnalyzeTool
+    SqlInput
+    SqlAnalysisResult
+    BatchSqlAnalysisResult
+
+当前能力：
+
+- 固定使用 `DbType.dm`
+- Druid 解析 SQL AST
+- Statement 类型识别
+- SchemaStatVisitor 收集表/字段
+- 区分 readTables / writeTables
+- Batch 输入逐条故障隔离
+- 保留 sqlId / source / fileName
+- 输出 parseMillis / warnings / errors
+
+当前明确未实现：
+
+- 字段表达式到目标字段的 lineage resolver
+- SELECT * 元数据展开
+- Local lineage edge
+- Global lineage aggregator
+- 跨 SQL 字段链
+- Excel/JSON lineage export
+
+## 当前 DM fixture corpus
+
+目录：
+
+    src/test/resources/sql/dm/
+
+当前包含：
+
+- SELECT + JOIN
+- INSERT ... SELECT
+- LISTAGG ... WITHIN GROUP
+- MERGE
+- 非法 SQL
+
+每个 SQL 都有配套：
+
+    *.expected.json
+
+JUnit 会验证：
+
+- parse status
+- statement type
+- 关键 read tables
+- 关键 write tables
+
+同时额外验证：
+
+    3 条 SQL
+      2 条合法
+      1 条非法
+
+结果必须：
+
+    total = 3
+    success = 2
+    failed = 1
+
+非法 SQL 不允许中断另外两条分析。
+
+
+## Druid 1.2.28 已知 DM Parser 缺口
+
+当前 regression corpus 已确认：
+
+    LISTAGG(...) WITHIN GROUP (ORDER BY ...)
+
+在本项目锁定的 Druid 1.2.28 + DbType.dm 下解析失败，因此 fixture：
+
+    003-listagg.sql
+
+当前期望状态明确记录为：
+
+    PARSE_FAILED
+
+这不是把测试放宽，而是把当前依赖版本的真实兼容边界固化下来。
+
+Druid 当前 main 已经存在针对 DM LISTAGG/WITHIN GROUP 的测试；后续升级 Druid 时，
+该 fixture 是升级验收点之一：只有实际 parser 能通过后，才把 expected 改回 SUCCESS。
+
+当前不使用正则“修 SQL”，也不偷偷切 Oracle parser fallback，避免血缘分析出现静默误判。

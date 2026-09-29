@@ -164,6 +164,11 @@ const TOOL_CONFIGS = {
     { key: 'ports', label: '端口（支持 80,443,8000-9000 混合）', type: 'text', placeholder: '80,443,8080 或 1-1000' },
     { key: 'timeout', label: '超时时间（毫秒）', type: 'text', default: '3000' }
   ]},
+  'dm-sql-analyze': { fields: [
+    { key: 'sqlId', label: 'SQL ID', type: 'text', default: 'manual' },
+    { key: 'source', label: '来源（可选）', type: 'text', default: 'toolbox' },
+    { key: 'sql', label: '达梦 SQL', type: 'textarea', placeholder: 'SELECT a.ID FROM APP.ODS_ORDER a WHERE a.STATUS = 1' }
+  ]},
   'mybatis-generator': { fields: [
     { key: 'databaseType', label: '数据库类型', type: 'select', options: [
       { value: 'dm', label: '达梦 DM' },
