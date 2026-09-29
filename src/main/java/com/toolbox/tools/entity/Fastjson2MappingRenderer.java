@@ -58,7 +58,27 @@ public class Fastjson2MappingRenderer {
             return "json.getList(" + key + ", " + rootClassName + "." +
                     itemType.getObjectSchema().getClassName() + ".class)";
         }
+        if (itemType.getKind() == ValueKind.LIST) {
+            return "json.getObject(" + key +
+                    ", new com.alibaba.fastjson2.TypeReference<java.util.List<" +
+                    genericType(itemType, rootClassName) + ">>() {})";
+        }
         return "json.getList(" + key + ", " + classLiteral(itemType) + ")";
+    }
+
+    private String genericType(TypeSchema type, String rootClassName) {
+        switch (type.getKind()) {
+            case BIG_INTEGER: return "java.math.BigInteger";
+            case BIG_DECIMAL: return "java.math.BigDecimal";
+            case LOCAL_DATE: return "java.time.LocalDate";
+            case LOCAL_DATE_TIME: return "java.time.LocalDateTime";
+            case OBJECT:
+                return rootClassName + "." + type.getObjectSchema().getClassName();
+            case LIST:
+                return "java.util.List<" + genericType(type.getItemType(), rootClassName) + ">";
+            default:
+                return type.toJavaType();
+        }
     }
 
     private String classLiteral(TypeSchema type) {
