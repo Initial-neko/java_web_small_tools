@@ -6,7 +6,9 @@ import javax.tools.JavaCompiler;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -24,23 +26,39 @@ final class GeneratedSourceCompiler {
     }
 
     static ClassLoader compile(Map<String, String> sources) throws Exception {
-        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-        if (compiler == null) {
-            throw new IllegalStateException("必须使用 JDK 运行测试，不能只使用 JRE");
-        }
-
         Path root = Files.createTempDirectory("toolbox-generated-source-");
         Path sourceRoot = root.resolve("src");
         Path classRoot = root.resolve("classes");
         Files.createDirectories(sourceRoot);
         Files.createDirectories(classRoot);
 
+        List<File> javaFiles = writeSources(sources, sourceRoot);
+
+        if (containsLombok(sources)) {
+            compileWithExternalJavac(javaFiles, classRoot);
+        } else {
+            compileWithJavaCompiler(javaFiles, classRoot);
+        }
+
+        return new URLClassLoader(new URL[]{classRoot.toUri().toURL()},
+                Thread.currentThread().getContextClassLoader());
+    }
+
+    private static List<File> writeSources(Map<String, String> sources, Path sourceRoot) throws Exception {
         List<File> javaFiles = new ArrayList<File>();
         for (Map.Entry<String, String> entry : sources.entrySet()) {
             Path sourceFile = sourceRoot.resolve(entry.getKey().replace('.', '/') + ".java");
             Files.createDirectories(sourceFile.getParent());
             Files.write(sourceFile, entry.getValue().getBytes(StandardCharsets.UTF_8));
             javaFiles.add(sourceFile.toFile());
+        }
+        return javaFiles;
+    }
+
+    private static void compileWithJavaCompiler(List<File> javaFiles, Path classRoot) throws Exception {
+        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+        if (compiler == null) {
+            throw new IllegalStateException("必须使用 JDK 运行测试，不能只使用 JRE");
         }
 
         DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<JavaFileObject>();
@@ -52,8 +70,6 @@ final class GeneratedSourceCompiler {
                 "-source", "8",
                 "-target", "8",
                 "-encoding", "UTF-8",
-                "-processorpath", lombokProcessorPath(),
-                "-processor", "lombok.launch.AnnotationProcessorHider$AnnotationProcessor",
                 "-d", classRoot.toString()
         );
 
@@ -70,12 +86,70 @@ final class GeneratedSourceCompiler {
             }
             throw new AssertionError(message.toString());
         }
-
-        return new URLClassLoader(new URL[]{classRoot.toUri().toURL()},
-                Thread.currentThread().getContextClassLoader());
     }
 
-    private static String lombokProcessorPath() {
+    private static void compileWithExternalJavac(List<File> javaFiles, Path classRoot) throws Exception {
+        String lombokJar = lombokJarPath();
+        List<String> command = new ArrayList<String>();
+        command.add(javacExecutable());
+        command.add("-cp");
+        command.add(lombokJar);
+        command.add("-processorpath");
+        command.add(lombokJar);
+        command.add("-processor");
+        command.add("lombok.launch.AnnotationProcessorHider$AnnotationProcessor");
+        command.add("-source");
+        command.add("8");
+        command.add("-target");
+        command.add("8");
+        command.add("-encoding");
+        command.add("UTF-8");
+        command.add("-d");
+        command.add(classRoot.toString());
+        for (File javaFile : javaFiles) {
+            command.add(javaFile.getAbsolutePath());
+        }
+
+        Process process = new ProcessBuilder(command)
+                .redirectErrorStream(true)
+                .start();
+
+        StringBuilder output = new StringBuilder();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8));
+        String line;
+        while ((line = reader.readLine()) != null) {
+            output.append(line).append("\n");
+        }
+        int exit = process.waitFor();
+        if (exit != 0) {
+            throw new AssertionError("Lombok 生成源码 javac 编译失败:\n" + output);
+        }
+    }
+
+    private static boolean containsLombok(Map<String, String> sources) {
+        for (String source : sources.values()) {
+            if (source.contains("import lombok.Data;") || source.contains("@Data")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static String javacExecutable() {
+        File bin = new File(System.getProperty("java.home"), "bin");
+        File javac = new File(bin, isWindows() ? "javac.exe" : "javac");
+        if (!javac.isFile()) {
+            throw new IllegalStateException("未找到 javac: " + javac.getAbsolutePath());
+        }
+        return javac.getAbsolutePath();
+    }
+
+    private static boolean isWindows() {
+        String os = System.getProperty("os.name", "").toLowerCase();
+        return os.contains("win");
+    }
+
+    private static String lombokJarPath() {
         try {
             return new File(lombok.Data.class.getProtectionDomain()
                     .getCodeSource().getLocation().toURI()).getAbsolutePath();
