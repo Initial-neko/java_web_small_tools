@@ -5,5 +5,5 @@ echo ========================================
 echo   Toolbox 本地工具集
 echo ========================================
 echo.
-java -jar toolbox.jar
+java -jar toolbox-exec.jar
 pause
