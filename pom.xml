@@ -23,7 +23,8 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <fastjson.version>1.2.84</fastjson.version>
+        <fastjson2.version>2.0.65</fastjson2.version>
+        <lombok.version>1.18.48</lombok.version>
         <mybatis.generator.version>1.4.2</mybatis.generator.version>
     </properties>
 
@@ -35,9 +36,9 @@
 
         <!-- 项目 JSON 工具统一使用 Fastjson 1.x；保持 Java 8/内网兼容 -->
         <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>fastjson</artifactId>
-            <version>${fastjson.version}</version>
+            <groupId>com.alibaba.fastjson2</groupId>
+            <artifactId>fastjson2</artifactId>
+            <version>${fastjson2.version}</version>
         </dependency>
 
         <!-- Java 8 可用的 MyBatis Generator 固定版本；2.x 需要更高 JDK -->
@@ -45,6 +46,14 @@
             <groupId>org.mybatis.generator</groupId>
             <artifactId>mybatis-generator-core</artifactId>
             <version>${mybatis.generator.version}</version>
+        </dependency>
+
+        <!-- 仅用于验证“生成出来的 Lombok 源码”确实可以被 Java 8 编译 -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
+            <scope>test</scope>
         </dependency>
 
         <!-- 文件/文本 Diff 引擎 -->
