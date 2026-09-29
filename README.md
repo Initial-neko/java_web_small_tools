@@ -18,6 +18,7 @@
 | JSON → Java | `json-to-java` | Fastjson2 JSON 样本生成 Normal/Lombok Entity 或显式 Mapping Code |
 | IP 端口检测 | `ip-port-checker` | 检测指定 IP 的端口是否开放，支持多端口和端口范围 |
 | Excel 浏览 | `excel-viewer` | 上传 Excel 网页分页浏览，支持多 sheet、合并单元格、样式保留；当前 Sheet 可直接生成 Normal/Lombok Entity |
+| 达梦 SQL 分析 | `dm-sql-analyze` | Druid DM 方言解析：Statement、读写表、字段、解析错误；作为批量血缘 Core |
 | MyBatis Generator | `mybatis-generator` | 数据库表生成 Java Model / Mapper / XML；外置 JDBC Driver，优先验证 Oracle / 达梦 |
 
 ## 环境要求
@@ -49,6 +50,7 @@ Windows 双击 `start.bat`，Linux/Mac 执行 `./start.sh`。
 - Java 8 + Spring Boot 2.7.18
 - Fastjson2 2.0.65（工具侧 JSON 处理）
 - MyBatis Generator 1.4.2（Java 8 数据库代码生成）
+- Alibaba Druid 1.2.28（DM SQL Parser / SchemaStat）
 - java-diff-utils 4.12（文本 Diff）
 - Apache POI 5.2.5（Excel 解析）
 - 原生 HTML + JavaScript（前端）
