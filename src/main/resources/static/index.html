@@ -141,6 +141,15 @@ const TOOL_CONFIGS = {
       { value: 'unescape', label: '反转义' }]},
     { key: 'input', label: '输入内容', type: 'textarea' }
   ]},
+  'json-to-java': { fields: [
+    { key: 'mode', label: '输出模式', type: 'select', options: [
+      { value: 'normal', label: 'Normal Java Entity' },
+      { value: 'lombok', label: 'Lombok @Data Entity' },
+      { value: 'mapping', label: 'Fastjson2 JSONObject 显式 Mapping Code' }]},
+    { key: 'className', label: '类名', type: 'text', default: 'GeneratedEntity' },
+    { key: 'packageName', label: '包名', type: 'text', default: 'com.example.model', showWhen: f => f.mode !== 'mapping' },
+    { key: 'input', label: 'JSON 样本', type: 'textarea', placeholder: '{"user_id":1,"name":"Alice","orders":[{"id":1}]}' }
+  ]},
   'text-diff': { fields: [
     { key: 'textA', label: '原始文本（A）', type: 'textarea' },
     { key: 'textB', label: '对比文本（B）', type: 'textarea' },
