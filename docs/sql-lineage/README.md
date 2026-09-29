@@ -327,3 +327,25 @@ JUnit 会验证：
     failed = 1
 
 非法 SQL 不允许中断另外两条分析。
+
+
+## Druid 1.2.28 已知 DM Parser 缺口
+
+当前 regression corpus 已确认：
+
+    LISTAGG(...) WITHIN GROUP (ORDER BY ...)
+
+在本项目锁定的 Druid 1.2.28 + DbType.dm 下解析失败，因此 fixture：
+
+    003-listagg.sql
+
+当前期望状态明确记录为：
+
+    PARSE_FAILED
+
+这不是把测试放宽，而是把当前依赖版本的真实兼容边界固化下来。
+
+Druid 当前 main 已经存在针对 DM LISTAGG/WITHIN GROUP 的测试；后续升级 Druid 时，
+该 fixture 是升级验收点之一：只有实际 parser 能通过后，才把 expected 改回 SUCCESS。
+
+当前不使用正则“修 SQL”，也不偷偷切 Oracle parser fallback，避免血缘分析出现静默误判。
