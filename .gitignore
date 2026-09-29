@@ -39,3 +39,7 @@ Thumbs.db
 
 # Maven Wrapper
 .mvn/wrapper/maven-wrapper.jar
+
+# Toolbox local outputs
+/generated/
+/drivers/*.jar

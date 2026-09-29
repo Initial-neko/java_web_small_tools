@@ -1,9 +1,8 @@
 package com.toolbox.tools.json;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONException;
+import com.alibaba.fastjson2.JSONWriter;
 import com.toolbox.core.Tool;
 import com.toolbox.core.ToolResult;
 import org.springframework.stereotype.Component;
@@ -13,13 +12,10 @@ import java.util.Map;
 
 /**
  * JSON 格式化工具。
- * 支持：美化、压缩、校验、转义、反转义。
+ * 项目 JSON 能力统一使用 Fastjson 1.x。
  */
 @Component
 public class JsonFormatTool implements Tool {
-
-    private final ObjectMapper prettyMapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
-    private final ObjectMapper compactMapper = new ObjectMapper();
 
     @Override
     public String getName() {
@@ -33,7 +29,7 @@ public class JsonFormatTool implements Tool {
 
     @Override
     public String getDescription() {
-        return "JSON 美化、压缩、校验、转义/反转义";
+        return "JSON 美化、压缩、校验、转义/反转义（Fastjson）";
     }
 
     @Override
@@ -49,44 +45,38 @@ public class JsonFormatTool implements Tool {
             Map<String, Object> data = new HashMap<String, Object>();
 
             if ("format".equals(action)) {
-                JsonNode node = prettyMapper.readTree(input);
-                data.put("output", prettyMapper.writeValueAsString(node));
+                Object value = JSON.parse(input);
+                data.put("output", JSON.toJSONString(value, JSONWriter.Feature.PrettyFormat));
                 return ToolResult.ok(data);
             }
 
             if ("compress".equals(action)) {
-                JsonNode node = compactMapper.readTree(input);
-                data.put("output", compactMapper.writeValueAsString(node));
+                Object value = JSON.parse(input);
+                data.put("output", JSON.toJSONString(value));
                 return ToolResult.ok(data);
             }
 
             if ("validate".equals(action)) {
                 try {
-                    compactMapper.readTree(input);
+                    JSON.parse(input);
                     data.put("valid", true);
                     data.put("output", "JSON 格式正确");
-                } catch (JsonProcessingException e) {
+                } catch (JSONException e) {
                     data.put("valid", false);
-                    data.put("output", "错误: " + e.getOriginalMessage()
-                            + " (行 " + e.getLocation().getLineNr()
-                            + ", 列 " + e.getLocation().getColumnNr() + ")");
+                    data.put("output", "错误: " + e.getMessage());
                 }
                 return ToolResult.ok(data);
             }
 
             if ("escape".equals(action)) {
-                // 将 JSON 字符串转义为可嵌入字符串的形式
-                String escaped = compactMapper.writeValueAsString(input);
-                // 去掉首尾引号
+                String escaped = JSON.toJSONString(input);
                 data.put("output", escaped.substring(1, escaped.length() - 1));
                 return ToolResult.ok(data);
             }
 
             if ("unescape".equals(action)) {
-                // 反转义：给输入包一层引号再解析
                 String wrapped = "\"" + input + "\"";
-                String unescaped = compactMapper.readValue(wrapped, String.class);
-                data.put("output", unescaped);
+                data.put("output", JSON.parseObject(wrapped, String.class));
                 return ToolResult.ok(data);
             }
 
