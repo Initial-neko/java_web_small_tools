@@ -15,13 +15,15 @@ ZIP="$RELEASE_ROOT/java-web-small-tools-offline.zip"
 DEPENDENCY_PLUGIN="org.apache.maven.plugins:maven-dependency-plugin:3.6.1"
 
 rm -rf "$DIST" "$ZIP"
-mkdir -p "$DIST/lib" "$DIST/optional-lib" "$DIST/drivers" "$DIST/source" "$RELEASE_ROOT"
 
 if [ "$SKIP_TESTS" = "true" ]; then
   mvn -B -DskipTests clean package
 else
   mvn -B clean package
 fi
+
+# mvn clean 会删除 target，因此发行目录必须在 build 之后创建。
+mkdir -p "$DIST/lib" "$DIST/optional-lib" "$DIST/drivers" "$DIST/source" "$RELEASE_ROOT"
 
 test -f "$ROOT/target/toolbox.jar"
 test -f "$ROOT/target/toolbox-exec.jar"
