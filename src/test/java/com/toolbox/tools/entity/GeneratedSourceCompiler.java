@@ -7,6 +7,7 @@ import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 import java.io.File;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
@@ -51,6 +52,7 @@ final class GeneratedSourceCompiler {
                 "-source", "8",
                 "-target", "8",
                 "-encoding", "UTF-8",
+                "-processorpath", lombokProcessorPath(),
                 "-processor", "lombok.launch.AnnotationProcessorHider$AnnotationProcessor",
                 "-d", classRoot.toString()
         );
@@ -71,5 +73,14 @@ final class GeneratedSourceCompiler {
 
         return new URLClassLoader(new URL[]{classRoot.toUri().toURL()},
                 Thread.currentThread().getContextClassLoader());
+    }
+
+    private static String lombokProcessorPath() {
+        try {
+            return new File(lombok.Data.class.getProtectionDomain()
+                    .getCodeSource().getLocation().toURI()).getAbsolutePath();
+        } catch (URISyntaxException e) {
+            throw new IllegalStateException("无法定位 lombok.jar", e);
+        }
     }
 }
