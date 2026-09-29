@@ -104,6 +104,8 @@ public class NormalJavaRenderer {
             imports.add("java.math.BigDecimal");
         } else if (type.getKind() == ValueKind.LOCAL_DATE) {
             imports.add("java.time.LocalDate");
+        } else if (type.getKind() == ValueKind.LOCAL_TIME) {
+            imports.add("java.time.LocalTime");
         } else if (type.getKind() == ValueKind.LOCAL_DATE_TIME) {
             imports.add("java.time.LocalDateTime");
         } else if (type.getKind() == ValueKind.LIST) {

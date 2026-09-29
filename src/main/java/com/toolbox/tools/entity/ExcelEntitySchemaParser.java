@@ -7,16 +7,11 @@ import com.toolbox.tools.excel.ExcelSheet;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class ExcelEntitySchemaParser {
 
-    private static final Pattern NUMBER_PATTERN = Pattern.compile(
-            "^(?:number|numeric|decimal)\\s*\\(\\s*(\\d+)\\s*(?:,\\s*(\\d+)\\s*)?\\)$",
-            Pattern.CASE_INSENSITIVE);
+    private final EntityTypeMapper typeMapper = new EntityTypeMapper();
 
     public EntitySchema parse(ExcelSheet sheet, String className, String packageName,
                               int headerRow, int typeRow, int commentRow) {
@@ -57,77 +52,7 @@ public class ExcelEntitySchemaParser {
     }
 
     public TypeSchema parseType(String rawType) {
-        if (rawType == null || rawType.trim().isEmpty()) {
-            return TypeSchema.scalar(ValueKind.STRING);
-        }
-
-        String type = rawType.trim().toLowerCase(Locale.ROOT)
-                .replace("java.lang.", "")
-                .replace("java.math.", "")
-                .replace("java.time.", "");
-
-        if ("string".equals(type) || starts(type, "varchar", "nvarchar", "varchar2", "nvarchar2",
-                "char", "nchar", "text", "clob", "nclob", "longvarchar")) {
-            return TypeSchema.scalar(ValueKind.STRING);
-        }
-
-        if ("boolean".equals(type) || "bool".equals(type) || "bit".equals(type)) {
-            return TypeSchema.scalar(ValueKind.BOOLEAN);
-        }
-
-        if ("integer".equals(type) || "int".equals(type) || "smallint".equals(type)
-                || "tinyint".equals(type) || "short".equals(type) || "byte".equals(type)) {
-            return TypeSchema.scalar(ValueKind.INTEGER);
-        }
-
-        if ("long".equals(type) || starts(type, "bigint")) {
-            return TypeSchema.scalar(ValueKind.LONG);
-        }
-
-        if ("biginteger".equals(type)) {
-            return TypeSchema.scalar(ValueKind.BIG_INTEGER);
-        }
-
-        if ("bigdecimal".equals(type) || starts(type, "float", "double", "real")) {
-            return TypeSchema.scalar(ValueKind.BIG_DECIMAL);
-        }
-
-        Matcher number = NUMBER_PATTERN.matcher(type);
-        if (number.matches()) {
-            int precision = Integer.parseInt(number.group(1));
-            int scale = number.group(2) == null ? 0 : Integer.parseInt(number.group(2));
-            if (scale > 0) return TypeSchema.scalar(ValueKind.BIG_DECIMAL);
-            if (precision <= 9) return TypeSchema.scalar(ValueKind.INTEGER);
-            if (precision <= 18) return TypeSchema.scalar(ValueKind.LONG);
-            return TypeSchema.scalar(ValueKind.BIG_INTEGER);
-        }
-
-        if ("number".equals(type) || "numeric".equals(type) || "decimal".equals(type)
-                || type.startsWith("number ") || type.startsWith("numeric ") || type.startsWith("decimal ")) {
-            return TypeSchema.scalar(ValueKind.BIG_DECIMAL);
-        }
-
-        if ("date".equals(type) || "localdate".equals(type)) {
-            return TypeSchema.scalar(ValueKind.LOCAL_DATE);
-        }
-
-        if ("datetime".equals(type) || "timestamp".equals(type)
-                || type.startsWith("timestamp(") || "localdatetime".equals(type)) {
-            return TypeSchema.scalar(ValueKind.LOCAL_DATE_TIME);
-        }
-
-        if ("object".equals(type)) {
-            return TypeSchema.scalar(ValueKind.UNKNOWN);
-        }
-
-        return TypeSchema.scalar(ValueKind.UNKNOWN);
-    }
-
-    private boolean starts(String value, String... prefixes) {
-        for (String prefix : prefixes) {
-            if (value.startsWith(prefix)) return true;
-        }
-        return false;
+        return typeMapper.fromSourceType(rawType);
     }
 
     private ExcelRow row(ExcelSheet sheet, int oneBasedRow) {
