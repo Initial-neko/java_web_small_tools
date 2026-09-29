@@ -474,6 +474,20 @@ function renderExcelWorkspace() {
     '<div class="excel-toolbar"><span><strong>' + escapeHtml(excelState.fileName) + '</strong> — ' +
       sheet.totalRows + ' 行 × ' + sheet.totalCols + ' 列</span>' +
       '<button class="btn btn-sm" onclick="resetExcel()">重新上传</button></div>' + tabs +
+    '<div class="sys-card" style="margin-bottom:16px;">' +
+      '<h4>Excel → Java Entity</h4>' +
+      '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;">' +
+        '<div class="form-group"><label>类名</label><input type="text" id="excelEntityClass" value="' + escapeHtml(sheet.name) + '"></div>' +
+        '<div class="form-group"><label>包名</label><input type="text" id="excelEntityPackage" value="com.example.model"></div>' +
+        '<div class="form-group"><label>输出</label><select id="excelEntityMode"><option value="normal">Normal Java</option><option value="lombok">Lombok @Data</option></select></div>' +
+        '<div class="form-group"><label>字段名行</label><input type="text" id="excelEntityHeaderRow" value="1"></div>' +
+        '<div class="form-group"><label>类型行</label><input type="text" id="excelEntityTypeRow" value="2"></div>' +
+        '<div class="form-group"><label>注释行</label><input type="text" id="excelEntityCommentRow" value="3"></div>' +
+      '</div>' +
+      '<div style="font-size:12px;color:#7f8c8d;margin-bottom:10px;">行号从 1 开始；类型行/注释行填 0 表示不使用。默认：第1行字段、第2行类型、第3行注释。</div>' +
+      '<button class="btn btn-sm" onclick="generateExcelEntity()">生成 Entity</button>' +
+      '<div id="excelEntityResult" style="margin-top:12px;"></div>' +
+    '</div>' +
     '<div id="excelTableContainer"><div style="text-align:center;padding:30px;color:#95a5a6;">加载中...</div></div>' +
     '<div class="excel-pagination" id="excelPagination"></div>';
 }
@@ -554,6 +568,35 @@ function renderExcelPagination(data) {
   pag.innerHTML = '<button onclick="loadExcelSheet(' + excelState.currentSheet + ',' + (pg - 1) + ')"' + (pg <= 1 ? ' disabled' : '') + '>上一页</button>' +
     '<span class="page-info">第 ' + pg + ' / ' + tp + ' 页（每页 ' + excelState.pageSize + ' 行）</span>' +
     '<button onclick="loadExcelSheet(' + excelState.currentSheet + ',' + (pg + 1) + ')"' + (pg >= tp ? ' disabled' : '') + '>下一页</button>';
+}
+
+function generateExcelEntity() {
+  const result = document.getElementById('excelEntityResult');
+  result.innerHTML = '<div style="color:#7f8c8d;">生成中...</div>';
+  const payload = {
+    sheetIndex: excelState.currentSheet,
+    className: document.getElementById('excelEntityClass').value,
+    packageName: document.getElementById('excelEntityPackage').value,
+    mode: document.getElementById('excelEntityMode').value,
+    headerRow: document.getElementById('excelEntityHeaderRow').value,
+    typeRow: document.getElementById('excelEntityTypeRow').value,
+    commentRow: document.getElementById('excelEntityCommentRow').value
+  };
+  fetch('/api/excel/' + excelState.fileId + '/entity', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  }).then(r => r.json()).then(res => {
+    if (!res.success) {
+      result.innerHTML = '<div class="result-box error">' + escapeHtml(res.message || '生成失败') + '</div>';
+      return;
+    }
+    let summary = '类: ' + res.packageName + '.' + res.className + '，字段: ' + res.fieldCount;
+    result.innerHTML = '<div style="font-size:12px;margin-bottom:6px;color:#7f8c8d;">' + escapeHtml(summary) + '</div>' +
+      '<div class="result-box">' + escapeHtml(res.output) + '</div>';
+  }).catch(e => {
+    result.innerHTML = '<div class="result-box error">请求失败: ' + escapeHtml(e.message) + '</div>';
+  });
 }
 
 function resetExcel() {

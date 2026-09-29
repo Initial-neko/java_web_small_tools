@@ -19,7 +19,7 @@ public class JsonEntitySchemaInferer {
     public EntitySchema infer(String json, String className, String packageName) {
         Object root = JSON.parse(json);
         if (!(root instanceof JSONObject)) {
-            throw new IllegalArgumentException("第一版要求 JSON 根节点是 Object");
+            throw new IllegalArgumentException("JSON 根节点必须是 Object");
         }
         String safeClassName = JavaNameUtils.toClassName(className);
         return inferObjects(Collections.singletonList((JSONObject) root), safeClassName, packageName);
@@ -108,15 +108,21 @@ public class JsonEntitySchemaInferer {
 
     private ValueKind numberKind(List<Object> values) {
         boolean decimal = false;
+        boolean bigInteger = false;
         boolean wide = false;
+
         for (Object value : values) {
             if (value instanceof BigDecimal || value instanceof Double || value instanceof Float) {
                 decimal = true;
-            } else if (value instanceof Long || value instanceof BigInteger) {
+            } else if (value instanceof BigInteger) {
+                bigInteger = true;
+            } else if (value instanceof Long) {
                 wide = true;
             }
         }
+
         if (decimal) return ValueKind.BIG_DECIMAL;
+        if (bigInteger) return ValueKind.BIG_INTEGER;
         if (wide) return ValueKind.LONG;
         return ValueKind.INTEGER;
     }

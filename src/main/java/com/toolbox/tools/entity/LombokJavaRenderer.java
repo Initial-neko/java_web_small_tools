@@ -17,6 +17,7 @@ public class LombokJavaRenderer extends NormalJavaRenderer {
 
         if (!schema.getFields().isEmpty()) out.append("\n");
         for (FieldSchema field : schema.getFields()) {
+            appendFieldComment(out, field, indent + "    ");
             out.append(indent).append("    private ").append(field.getJavaType()).append(" ")
                     .append(field.getFieldName()).append(";\n");
         }

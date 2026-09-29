@@ -17,7 +17,7 @@
 | JSON 对比 | `json-compare` | 两个 JSON 结构化对比，按路径输出差异 |
 | JSON → Java | `json-to-java` | Fastjson2 JSON 样本生成 Normal/Lombok Entity 或显式 Mapping Code |
 | IP 端口检测 | `ip-port-checker` | 检测指定 IP 的端口是否开放，支持多端口和端口范围 |
-| Excel 浏览 | `excel-viewer` | 上传 Excel 网页分页浏览，支持多 sheet、合并单元格、样式保留 |
+| Excel 浏览 | `excel-viewer` | 上传 Excel 网页分页浏览，支持多 sheet、合并单元格、样式保留；当前 Sheet 可直接生成 Normal/Lombok Entity |
 | MyBatis Generator | `mybatis-generator` | 数据库表生成 Java Model / Mapper / XML；外置 JDBC Driver，优先验证 Oracle / 达梦 |
 
 ## 环境要求
@@ -42,6 +42,7 @@ Windows 双击 `start.bat`，Linux/Mac 执行 `./start.sh`。
 - `GET /api/system/info` — 本机系统信息
 - `POST /api/excel/upload` — 上传 Excel
 - `GET /api/excel/{fileId}/sheet/{index}?page=1&size=100` — 分页读取 Excel
+- `POST /api/excel/{fileId}/entity` — 按字段/类型/注释行生成 Java Entity
 - `DELETE /api/excel/{fileId}` — 清理
 
 ## 技术栈
@@ -55,6 +56,7 @@ Windows 双击 `start.bat`，Linux/Mac 执行 `./start.sh`。
 
 ## 内网与数据工具文档
 
+- `docs/entity-generator/README.md` — JSON/Excel → Entity、类型映射与测试边界
 - `docs/mybatis-generator/README.md` — MyBatis Generator、Oracle/达梦、外置 Driver、离线构建
 - `drivers/README.md` — DM/Oracle JDBC Driver 放置和版本说明
 - `docs/sql-lineage/README.md` — 达梦批量 SQL 血缘设计基线

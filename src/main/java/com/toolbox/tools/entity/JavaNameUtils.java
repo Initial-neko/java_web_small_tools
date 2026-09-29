@@ -2,9 +2,10 @@ package com.toolbox.tools.entity;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 
-final class JavaNameUtils {
+public final class JavaNameUtils {
 
     private static final Set<String> KEYWORDS = new HashSet<String>(Arrays.asList(
             "abstract", "assert", "boolean", "break", "byte", "case", "catch", "char",
@@ -19,7 +20,7 @@ final class JavaNameUtils {
     private JavaNameUtils() {
     }
 
-    static String toFieldName(String source) {
+    public static String toFieldName(String source) {
         String value = toCamel(source, false);
         if (value.isEmpty()) {
             value = "field";
@@ -33,7 +34,7 @@ final class JavaNameUtils {
         return value;
     }
 
-    static String toClassName(String source) {
+    public static String toClassName(String source) {
         String value = toCamel(source, true);
         if (value.isEmpty()) {
             value = "GeneratedEntity";
@@ -44,7 +45,7 @@ final class JavaNameUtils {
         return value;
     }
 
-    static String capitalize(String value) {
+    public static String capitalize(String value) {
         if (value == null || value.isEmpty()) return value;
         return Character.toUpperCase(value.charAt(0)) + value.substring(1);
     }
@@ -73,12 +74,28 @@ final class JavaNameUtils {
 
     private static void appendToken(StringBuilder out, StringBuilder token, boolean upperFirst) {
         if (token.length() == 0) return;
+
+        String raw = token.toString();
+        String normalized = allUpper(raw) ? raw.toLowerCase(Locale.ROOT) : raw;
         if (upperFirst) {
-            out.append(Character.toUpperCase(token.charAt(0)));
-            if (token.length() > 1) out.append(token.substring(1));
+            out.append(Character.toUpperCase(normalized.charAt(0)));
         } else {
-            out.append(Character.toLowerCase(token.charAt(0)));
-            if (token.length() > 1) out.append(token.substring(1));
+            out.append(Character.toLowerCase(normalized.charAt(0)));
         }
+        if (normalized.length() > 1) {
+            out.append(normalized.substring(1));
+        }
+    }
+
+    private static boolean allUpper(String value) {
+        boolean hasLetter = false;
+        for (int i = 0; i < value.length(); i++) {
+            char ch = value.charAt(i);
+            if (Character.isLetter(ch)) {
+                hasLetter = true;
+                if (Character.isLowerCase(ch)) return false;
+            }
+        }
+        return hasLetter;
     }
 }
