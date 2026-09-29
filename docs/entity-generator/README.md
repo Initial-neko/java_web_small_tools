@@ -6,11 +6,8 @@ Entity Generator 的目标是把不同来源统一转换成 `EntitySchema`，再
 
 - Fastjson2 JSON Sample
 - Excel Schema Sheet
-
-后续计划接入：
-
-- JDBC Query Metadata
-- DDL AST
+- DM / Oracle CREATE TABLE DDL
+- JDBC SELECT/WITH ResultSetMetaData
 
 ## 统一结构
 
@@ -206,3 +203,52 @@ JSON Mapping 还必须继续执行：
 详细规则见：
 
     docs/testing/README.md
+
+
+## DDL → Java
+
+工具：
+
+    ddl-to-java
+
+当前支持：
+
+    databaseType = dm
+    databaseType = oracle
+
+只接受 CREATE TABLE。通过 Druid AST 读取字段，不使用正则解析 DDL。
+
+类名留空时默认由表名转换。
+
+## JDBC Query → Java
+
+工具：
+
+    jdbc-query-to-java
+
+通过外置 Driver 直接连接数据库，并执行只读 SELECT/WITH 查询获取 ResultSetMetaData。
+
+保护措施：
+
+- 非 SELECT/WITH 输入直接拒绝。
+- Connection 尝试 setReadOnly(true)。
+- PreparedStatement 尝试 maxRows=1。
+- PreparedStatement 尝试 queryTimeout=30 秒。
+- Driver Jar 使用独立 URLClassLoader，不要求注册到系统 DriverManager。
+
+DM / Oracle Driver Class 会自动推断；其他 JDBC 数据库可选择 custom 并填写 driverClass。
+
+## 统一类型映射
+
+Excel / DDL / JDBC Query 已统一使用：
+
+    EntityTypeMapper
+
+避免三个入口各自维护 NUMBER/VARCHAR/TIMESTAMP 等规则。
+
+额外覆盖：
+
+- byte[] / BLOB
+- LocalTime / TIME
+- LocalDate / DATE
+- LocalDateTime / TIMESTAMP
