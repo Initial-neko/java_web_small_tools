@@ -1,0 +1,6 @@
+{
+  "status": "SUCCESS",
+  "statementTypes": ["SELECT"],
+  "containsReadTables": ["APP.PROJECT_ITEM"],
+  "containsWriteTables": []
+}

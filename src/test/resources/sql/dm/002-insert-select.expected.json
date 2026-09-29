@@ -1,0 +1,6 @@
+{
+  "status": "SUCCESS",
+  "statementTypes": ["INSERT"],
+  "containsReadTables": ["APP.ODS_ORDER", "APP.CUSTOMER"],
+  "containsWriteTables": ["APP.DWD_ORDER"]
+}

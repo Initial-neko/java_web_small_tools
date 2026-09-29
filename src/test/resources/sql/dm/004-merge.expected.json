@@ -1,0 +1,6 @@
+{
+  "status": "SUCCESS",
+  "statementTypes": ["MERGE"],
+  "containsReadTables": ["APP.ODS_ORDER"],
+  "containsWriteTables": ["APP.DWD_ORDER"]
+}
