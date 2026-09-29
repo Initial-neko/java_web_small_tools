@@ -30,10 +30,16 @@ public class Fastjson2MappingRenderer {
                 return "json.getInteger(" + key + ")";
             case LONG:
                 return "json.getLong(" + key + ")";
+            case BIG_INTEGER:
+                return "json.getBigInteger(" + key + ")";
             case BIG_DECIMAL:
                 return "json.getBigDecimal(" + key + ")";
             case BOOLEAN:
                 return "json.getBoolean(" + key + ")";
+            case LOCAL_DATE:
+                return "json.getObject(" + key + ", java.time.LocalDate.class)";
+            case LOCAL_DATE_TIME:
+                return "json.getObject(" + key + ", java.time.LocalDateTime.class)";
             case OBJECT:
                 return "json.getObject(" + key + ", " + rootClassName + "." +
                         type.getObjectSchema().getClassName() + ".class)";
@@ -52,7 +58,17 @@ public class Fastjson2MappingRenderer {
             return "json.getList(" + key + ", " + rootClassName + "." +
                     itemType.getObjectSchema().getClassName() + ".class)";
         }
-        return "json.getList(" + key + ", " + itemType.toJavaType() + ".class)";
+        return "json.getList(" + key + ", " + classLiteral(itemType) + ")";
+    }
+
+    private String classLiteral(TypeSchema type) {
+        switch (type.getKind()) {
+            case BIG_INTEGER: return "java.math.BigInteger.class";
+            case BIG_DECIMAL: return "java.math.BigDecimal.class";
+            case LOCAL_DATE: return "java.time.LocalDate.class";
+            case LOCAL_DATE_TIME: return "java.time.LocalDateTime.class";
+            default: return type.toJavaType() + ".class";
+        }
     }
 
     private String escapeJava(String value) {

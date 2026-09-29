@@ -21,7 +21,8 @@ public class TypeSchema {
     }
 
     public static TypeSchema list(TypeSchema itemType) {
-        return new TypeSchema(ValueKind.LIST, null, itemType == null ? scalar(ValueKind.UNKNOWN) : itemType);
+        return new TypeSchema(ValueKind.LIST, null,
+                itemType == null ? scalar(ValueKind.UNKNOWN) : itemType);
     }
 
     public ValueKind getKind() {
@@ -41,8 +42,11 @@ public class TypeSchema {
             case STRING: return "String";
             case INTEGER: return "Integer";
             case LONG: return "Long";
+            case BIG_INTEGER: return "BigInteger";
             case BIG_DECIMAL: return "BigDecimal";
             case BOOLEAN: return "Boolean";
+            case LOCAL_DATE: return "LocalDate";
+            case LOCAL_DATE_TIME: return "LocalDateTime";
             case OBJECT: return objectSchema == null ? "Object" : objectSchema.getClassName();
             case LIST: return "List<" + itemType.toJavaType() + ">";
             default: return "Object";

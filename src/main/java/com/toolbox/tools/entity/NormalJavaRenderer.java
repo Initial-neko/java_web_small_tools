@@ -32,6 +32,7 @@ public class NormalJavaRenderer {
                 .append(schema.getClassName()).append(" {\n\n");
 
         for (FieldSchema field : schema.getFields()) {
+            appendFieldComment(out, field, indent + "    ");
             out.append(indent).append("    private ").append(field.getJavaType()).append(" ")
                     .append(field.getFieldName()).append(";\n");
         }
@@ -61,6 +62,17 @@ public class NormalJavaRenderer {
         out.append(indent).append("}\n");
     }
 
+    protected void appendFieldComment(StringBuilder out, FieldSchema field, String indent) {
+        if (field.getComment() == null || field.getComment().trim().isEmpty()) return;
+        String safe = field.getComment().trim().replace("*/", "* /").replace("\r", "");
+        out.append(indent).append("/**\n");
+        String[] lines = safe.split("\n");
+        for (String line : lines) {
+            out.append(indent).append(" * ").append(line).append("\n");
+        }
+        out.append(indent).append(" */\n");
+    }
+
     protected Set<EntitySchema> nestedSchemas(EntitySchema schema) {
         Set<EntitySchema> result = new LinkedHashSet<EntitySchema>();
         for (FieldSchema field : schema.getFields()) {
@@ -86,8 +98,14 @@ public class NormalJavaRenderer {
 
     private void collectImports(TypeSchema type, Set<String> imports) {
         if (type == null) return;
-        if (type.getKind() == ValueKind.BIG_DECIMAL) {
+        if (type.getKind() == ValueKind.BIG_INTEGER) {
+            imports.add("java.math.BigInteger");
+        } else if (type.getKind() == ValueKind.BIG_DECIMAL) {
             imports.add("java.math.BigDecimal");
+        } else if (type.getKind() == ValueKind.LOCAL_DATE) {
+            imports.add("java.time.LocalDate");
+        } else if (type.getKind() == ValueKind.LOCAL_DATE_TIME) {
+            imports.add("java.time.LocalDateTime");
         } else if (type.getKind() == ValueKind.LIST) {
             imports.add("java.util.List");
             collectImports(type.getItemType(), imports);
