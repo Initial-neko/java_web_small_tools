@@ -51,6 +51,7 @@ final class GeneratedSourceCompiler {
                 "-source", "8",
                 "-target", "8",
                 "-encoding", "UTF-8",
+                "-processor", "lombok.launch.AnnotationProcessorHider$AnnotationProcessor",
                 "-d", classRoot.toString()
         );
 
