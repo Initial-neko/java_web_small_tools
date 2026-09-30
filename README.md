@@ -22,6 +22,8 @@
 | Excel 浏览 | `excel-viewer` | 上传 Excel 网页分页浏览，支持多 sheet、合并单元格、样式保留；当前 Sheet 可直接生成 Normal/Lombok Entity |
 | 达梦 SQL 分析 | `dm-sql-analyze` | 单条 DM SQL：Statement、读写表、字段、解析错误 |
 | 达梦 SQL 批量分析 | `dm-sql-batch` | JSON/分隔文本批量分析、故障隔离、读写表汇总、表级依赖边 |
+| SQL 指标探查 | `sql-metric-probe` | 从 SELECT/WITH 中识别聚合指标、维度、WHERE/HAVING 口径和来源 |
+| SQL 批量指标探查 | `sql-metric-batch` | 批量识别指标候选并发现重复计算/不同指标别名 |
 | MyBatis Generator | `mybatis-generator` | 数据库表生成 Java Model / Mapper / XML；外置 JDBC Driver，优先验证 Oracle / 达梦 |
 
 ## 环境要求
@@ -65,7 +67,8 @@ Windows 双击 `start.bat`，Linux/Mac 执行 `./start.sh`。
 - `docs/offline-package/README.md` — 完整离线 ZIP、lib/、启动与校验
 - `docs/mybatis-generator/README.md` — MyBatis Generator、Oracle/达梦、外置 Driver、离线构建
 - `drivers/README.md` — DM/Oracle JDBC Driver 放置和版本说明
-- `docs/sql-lineage/README.md` — 达梦批量 SQL 血缘设计基线
+- `docs/sql-lineage/README.md` — 达梦批量 SQL 表级分析
+- `docs/metric-probe/README.md` — SQL 指标探查规则、输出与测试范围
 - `docs/notebook/2026-09-29-tools.md` — 当前工具需求 Notebook
 
 > JDBC Driver Jar 不提交 Git，也不打进 toolbox.jar；内网部署时放在 `drivers/` 并由工具运行时加载。

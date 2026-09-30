@@ -1,0 +1,10 @@
+{
+  "status": "SUCCESS",
+  "metricCount": 3,
+  "dimensionNames": ["dept_id"],
+  "metrics": [
+    {"name": "total_sales", "type": "SUM", "aggregation": "SUM"},
+    {"name": "order_count", "type": "COUNT_DISTINCT", "aggregation": "COUNT"},
+    {"name": "profit_rate", "type": "RATIO"}
+  ]
+}

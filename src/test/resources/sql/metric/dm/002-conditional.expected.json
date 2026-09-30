@@ -1,0 +1,7 @@
+{
+  "status": "SUCCESS",
+  "metricCount": 1,
+  "metrics": [
+    {"name": "paid_amount", "type": "CONDITIONAL_AGGREGATION", "aggregation": "SUM"}
+  ]
+}

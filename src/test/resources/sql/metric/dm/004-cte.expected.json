@@ -1,0 +1,8 @@
+{
+  "status": "SUCCESS",
+  "metricCount": 1,
+  "dimensionNames": ["dept_id"],
+  "metrics": [
+    {"name": "total_amount", "type": "SUM", "aggregation": "SUM"}
+  ]
+}

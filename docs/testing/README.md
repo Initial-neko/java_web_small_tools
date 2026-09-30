@@ -314,3 +314,31 @@ JUnit：
     bash scripts/package-offline.sh --skip-tests
 
 因此每次 PR 都会验证 thin jar、fat jar、runtime lib 收集和 ZIP 生成没有断裂。
+
+
+## 9. SQL Metric Probe
+
+目录：
+
+    src/test/resources/sql/metric/dm/
+
+Fixture 当前覆盖：
+
+- SUM / COUNT DISTINCT
+- 聚合参与除法的 RATIO
+- CASE WHEN 条件聚合
+- 普通 SELECT 不误报指标
+- CTE 主查询
+- 窗口聚合
+- 非法 SQL
+
+JUnit 还必须验证：
+
+- GROUP BY 被识别为维度/粒度
+- WHERE / HAVING 原始口径保留
+- 指标表达式来源字段
+- 非 SELECT 标为 UNSUPPORTED，不创造指标
+- Batch 单条失败不终止
+- 同一 normalized expression 的不同 alias 能聚合为重复计算组
+
+指标识别使用 AST 确定性规则，不使用 LLM 概率判断。

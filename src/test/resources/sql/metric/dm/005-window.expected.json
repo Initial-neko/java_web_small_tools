@@ -1,0 +1,7 @@
+{
+  "status": "SUCCESS",
+  "metricCount": 1,
+  "metrics": [
+    {"name": "dept_total", "type": "WINDOW", "aggregation": "SUM"}
+  ]
+}
