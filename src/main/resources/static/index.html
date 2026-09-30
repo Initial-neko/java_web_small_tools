@@ -200,6 +200,14 @@ const TOOL_CONFIGS = {
   'dm-sql-batch': { fields: [
     { key: 'input', label: '批量 SQL', type: 'textarea', placeholder: '[{"sqlId":"sql-1","source":"job-a","sql":"SELECT ID FROM APP.T_ORDER"}]\n\n也可使用多段文本，每条 SQL 之间用单独一行 -- @SQL 分隔。' }
   ]},
+  'sql-metric-probe': { fields: [
+    { key: 'sqlId', label: 'SQL ID', type: 'text', default: 'manual' },
+    { key: 'source', label: '来源（可选）', type: 'text', default: 'toolbox' },
+    { key: 'sql', label: 'SELECT / WITH SQL', type: 'textarea', placeholder: 'SELECT dept_id, SUM(amount) AS total_amount FROM APP.DWD_ORDER WHERE status=\'DONE\' GROUP BY dept_id' }
+  ]},
+  'sql-metric-batch': { fields: [
+    { key: 'input', label: '批量 SQL', type: 'textarea', placeholder: '[{"sqlId":"metric-1","source":"report-a","sql":"SELECT SUM(amount) AS total_amount FROM APP.DWD_ORDER"}]\n\n也可使用 -- @SQL 分隔多段 SQL。' }
+  ]},
   'mybatis-generator': { fields: [
     { key: 'databaseType', label: '数据库类型', type: 'select', options: [
       { value: 'dm', label: '达梦 DM' },
