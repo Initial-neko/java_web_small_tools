@@ -93,6 +93,36 @@
     <build>
         <finalName>toolbox</finalName>
         <plugins>
+            <!--
+              独立桌面包：只包含 com.toolbox.desktop，运行时仅依赖 JDK 8。
+              Web 工具仍由下面的 Spring Boot exec jar 负责。
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.3.0</version>
+                <executions>
+                    <execution>
+                        <id>desktop-jar</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <classifier>desktop</classifier>
+                            <includes>
+                                <include>com/toolbox/desktop/**</include>
+                            </includes>
+                            <archive>
+                                <manifest>
+                                    <mainClass>com.toolbox.desktop.DesktopToolboxApplication</mainClass>
+                                </manifest>
+                            </archive>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
