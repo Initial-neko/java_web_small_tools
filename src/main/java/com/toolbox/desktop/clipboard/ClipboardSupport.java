@@ -9,9 +9,7 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -69,27 +67,44 @@ public final class ClipboardSupport {
     }
 
     public static String hashImage(BufferedImage image) {
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
-        try {
-            ImageIO.write(image, "png", output);
-        } catch (IOException e) {
-            throw new IllegalStateException("Cannot encode image for hashing", e);
+        MessageDigest digest = newDigest();
+        updateInt(digest, image.getWidth());
+        updateInt(digest, image.getHeight());
+
+        for (int y = 0; y < image.getHeight(); y++) {
+            for (int x = 0; x < image.getWidth(); x++) {
+                updateInt(digest, image.getRGB(x, y));
+            }
         }
-        return sha256(output.toByteArray());
+        return toHex(digest.digest());
+    }
+
+    private static void updateInt(MessageDigest digest, int value) {
+        digest.update((byte) (value >>> 24));
+        digest.update((byte) (value >>> 16));
+        digest.update((byte) (value >>> 8));
+        digest.update((byte) value);
     }
 
     private static String sha256(byte[] bytes) {
+        MessageDigest digest = newDigest();
+        return toHex(digest.digest(bytes));
+    }
+
+    private static MessageDigest newDigest() {
         try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] encoded = digest.digest(bytes);
-            StringBuilder result = new StringBuilder(encoded.length * 2);
-            for (byte b : encoded) {
-                result.append(String.format("%02x", b & 0xff));
-            }
-            return result.toString();
+            return MessageDigest.getInstance("SHA-256");
         } catch (NoSuchAlgorithmException e) {
             throw new IllegalStateException("SHA-256 not available", e);
         }
+    }
+
+    private static String toHex(byte[] encoded) {
+        StringBuilder result = new StringBuilder(encoded.length * 2);
+        for (byte b : encoded) {
+            result.append(String.format("%02x", b & 0xff));
+        }
+        return result.toString();
     }
 
     public static boolean restore(ClipboardEntry entry, ClipboardHistoryStore store) {
