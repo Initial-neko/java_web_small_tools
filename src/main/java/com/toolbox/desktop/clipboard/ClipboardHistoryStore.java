@@ -28,6 +28,7 @@ public final class ClipboardHistoryStore {
     private final Path historyDir;
     private final Path imagesDir;
     private final Path screenshotsDir;
+    private volatile int maxEntries = 200;
     private final AtomicLong sequence = new AtomicLong(System.currentTimeMillis());
 
     public ClipboardHistoryStore(Path root) throws IOException {
@@ -39,8 +40,44 @@ public final class ClipboardHistoryStore {
         Files.createDirectories(imagesDir);
         Files.createDirectories(screenshotsDir);
         sequence.set(Math.max(sequence.get(), findMaxId()));
+        Path settings=root.resolve("history-settings.properties");
+        if(Files.exists(settings)){Properties p=new Properties();try(Reader reader=Files.newBufferedReader(settings,StandardCharsets.UTF_8)){p.load(reader);try{maxEntries=Integer.parseInt(p.getProperty("maxEntries","200"));}catch(NumberFormatException ignored){}if(maxEntries<1||maxEntries>10000)maxEntries=200;}}
+        trimHistory();
     }
 
+    public int getMaxEntries(){return maxEntries;}
+
+    public synchronized void setMaxEntries(int limit) throws IOException {
+        if(limit<1||limit>10000)throw new IllegalArgumentException("历史上限必须为 1–10000");
+        Properties p=new Properties();p.setProperty("maxEntries",Integer.toString(limit));
+        writeProperties(root.resolve("history-settings.properties"),p);
+        maxEntries=limit;trimHistory();
+    }
+
+    public synchronized void setPinned(ClipboardEntry entry,boolean pinned) throws IOException {
+        Path file=historyDir.resolve(entry.getId()+".properties");
+        if(!Files.exists(file))throw new IOException("这条历史已被清理，请刷新");
+        Properties p=new Properties();
+        try(Reader reader=Files.newBufferedReader(file,StandardCharsets.UTF_8)){p.load(reader);}
+        p.setProperty("pinned",Boolean.toString(pinned));writeProperties(file,p);trimHistory();
+    }
+
+    private void writeProperties(Path file,Properties properties) throws IOException {
+        Path temporary=Files.createTempFile(file.getParent(),"settings-",".tmp");
+        try {
+            try(Writer writer=Files.newBufferedWriter(temporary,StandardCharsets.UTF_8)){properties.store(writer,"desktop history settings");}
+            try {Files.move(temporary,file,java.nio.file.StandardCopyOption.ATOMIC_MOVE,java.nio.file.StandardCopyOption.REPLACE_EXISTING);}
+            catch(java.nio.file.AtomicMoveNotSupportedException e){Files.move(temporary,file,java.nio.file.StandardCopyOption.REPLACE_EXISTING);}
+        } finally {Files.deleteIfExists(temporary);}
+    }
+
+    private void trimHistory() throws IOException {
+        List<ClipboardEntry> entries=loadAll();int ordinary=0;
+        for(ClipboardEntry entry:entries)if(!entry.isPinned())ordinary++;
+        for(int i=entries.size()-1;i>=0&&ordinary>maxEntries;i--){
+            ClipboardEntry entry=entries.get(i);if(entry.isPinned())continue;delete(entry);ordinary--;
+        }
+    }
     public Path getRoot() {
         return root;
     }
@@ -57,6 +94,7 @@ public final class ClipboardHistoryStore {
                 hash
         );
         persist(entry);
+        trimHistory();
         return entry;
     }
 
@@ -75,6 +113,7 @@ public final class ClipboardHistoryStore {
                 hash
         );
         persist(entry);
+        trimHistory();
         return entry;
     }
 
@@ -94,6 +133,7 @@ public final class ClipboardHistoryStore {
                 hash
         );
         persist(entry);
+        trimHistory();
         return entry;
     }
 
@@ -122,7 +162,9 @@ public final class ClipboardHistoryStore {
 
         Collections.sort(entries, new Comparator<ClipboardEntry>() {
             public int compare(ClipboardEntry left, ClipboardEntry right) {
-                return Long.compare(right.getCreatedAt(), left.getCreatedAt());
+                if(left.isPinned()!=right.isPinned())return left.isPinned()?-1:1;
+                int date=Long.compare(right.getCreatedAt(), left.getCreatedAt());
+                return date!=0?date:Long.compare(right.getId(),left.getId());
             }
         });
         return entries;
@@ -131,7 +173,8 @@ public final class ClipboardHistoryStore {
     public synchronized void delete(ClipboardEntry entry) throws IOException {
         Files.deleteIfExists(historyDir.resolve(entry.getId() + ".properties"));
         if (entry.getType() == ClipboardEntry.Type.IMAGE && entry.getImagePath() != null) {
-            Files.deleteIfExists(root.resolve(entry.getImagePath()).normalize());
+            Path image=resolveImage(entry).toPath();
+            Files.deleteIfExists(image);
         }
     }
 
@@ -139,7 +182,9 @@ public final class ClipboardHistoryStore {
         if (entry.getImagePath() == null) {
             return null;
         }
-        return root.resolve(entry.getImagePath()).normalize().toFile();
+        Path image=root.resolve(entry.getImagePath()).normalize();
+        if(!image.startsWith(imagesDir))throw new IllegalArgumentException("Image path is outside the owned cache");
+        return image.toFile();
     }
 
     private long nextId() {
@@ -173,6 +218,7 @@ public final class ClipboardHistoryStore {
 
     private void persist(ClipboardEntry entry) throws IOException {
         Properties p = new Properties();
+        p.setProperty("pinned",Boolean.toString(entry.isPinned()));
         p.setProperty("id", Long.toString(entry.getId()));
         p.setProperty("createdAt", Long.toString(entry.getCreatedAt()));
         p.setProperty("type", entry.getType().name());
@@ -205,7 +251,7 @@ public final class ClipboardHistoryStore {
         String hash = emptyToNull(p.getProperty("hash"));
         List<String> files = splitLines(p.getProperty("filePaths"));
 
-        return new ClipboardEntry(id, createdAt, type, text, files, imagePath, hash);
+        return new ClipboardEntry(id, createdAt, type, text, files, imagePath, hash,Boolean.parseBoolean(p.getProperty("pinned","false")));
     }
 
     private String joinLines(List<String> values) {

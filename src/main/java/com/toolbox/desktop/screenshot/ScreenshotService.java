@@ -5,9 +5,10 @@ import com.toolbox.desktop.clipboard.ClipboardSupport;
 import com.toolbox.desktop.clipboard.ClipboardWatcher;
 
 import javax.swing.JComponent;
-import javax.swing.JWindow;
+import javax.swing.JFrame;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
 import java.awt.AWTException;
 import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
@@ -41,57 +42,53 @@ public final class ScreenshotService {
 
     private final ClipboardHistoryStore store;
     private final ClipboardWatcher watcher;
+    private boolean capturing;
+    private synchronized void releaseCapture(){capturing=false;}
 
     public ScreenshotService(ClipboardHistoryStore store, ClipboardWatcher watcher) {
         this.store = store;
         this.watcher = watcher;
     }
 
-    public void captureRegion(final Callback callback) {
-        try {
-            final VirtualScreen virtualScreen = captureVirtualScreen();
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    SelectionWindow window = new SelectionWindow(virtualScreen, new SelectionListener() {
-                        public void selected(Rectangle selection) {
-                            try {
-                                BufferedImage cropped = crop(virtualScreen.image, selection);
-                                String hash = ClipboardSupport.hashImage(cropped);
-                                store.saveImage(cropped, hash);
-                                File screenshot = store.saveScreenshotCopy(cropped);
-
-                                if (watcher != null) {
-                                    watcher.suppressNext(hash);
-                                }
-                                Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-                                clipboard.setContents(new ClipboardSupport.ImageTransferable(cropped), null);
-
-                                if (callback != null) {
-                                    callback.onSaved(screenshot);
-                                }
-                            } catch (Exception e) {
-                                if (callback != null) {
-                                    callback.onError(e);
-                                }
-                            }
+    public synchronized void captureRegion(final Callback callback) {
+        if(capturing)return;capturing=true;
+        final Callback result=new Callback(){
+            public void onSaved(File file){releaseCapture();if(callback!=null)callback.onSaved(file);}
+            public void onCancelled(){releaseCapture();if(callback!=null)callback.onCancelled();}
+            public void onError(Exception error){releaseCapture();if(callback!=null)callback.onError(error);}
+        };
+        new SwingWorker<VirtualScreen, Void>() {
+            protected VirtualScreen doInBackground() throws Exception { return captureVirtualScreen(); }
+            protected void done() {
+                try {
+                    final VirtualScreen screen = get();
+                    SelectionWindow window = new SelectionWindow(screen, new SelectionListener() {
+                        public void selected(final Rectangle selection) {
+                            try{BufferedImage cropped=crop(screen.image,selection);
+                            final ScreenshotPublisher publisher=new ScreenshotPublisher(store,image->{if(watcher!=null)watcher.copyImage(image);else Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new ClipboardSupport.ImageTransferable(image),null);});
+                            ScreenshotEditorWindow editor=new ScreenshotEditorWindow(cropped,new ScreenshotEditorWindow.Listener(){
+                                public void completed(final BufferedImage output,java.util.function.Consumer<String> finished){publishScreenshot(output,publisher,result,finished);}
+                                public void cancelled(){if(result!=null)result.onCancelled();}
+                            });
+                            editor.setVisible(true);
+                            }catch(Exception e){result.onError(e);}
                         }
-
-                        public void cancelled() {
-                            if (callback != null) {
-                                callback.onCancelled();
-                            }
-                        }
+                        public void cancelled() { if(result!=null)result.onCancelled(); }
                     });
                     window.open();
-                }
-            });
-        } catch (Exception e) {
-            if (callback != null) {
-                callback.onError(e);
+                } catch(Exception e) { if(result!=null)result.onError(e); }
             }
-        }
+        }.execute();
     }
-
+    private void publishScreenshot(final BufferedImage image,final ScreenshotPublisher publisher,final Callback callback,final java.util.function.Consumer<String> finished){
+        new SwingWorker<File,Void>(){
+            protected File doInBackground()throws Exception{return publisher.publish(image);}
+            protected void done(){
+                try{File file=get();finished.accept(null);if(callback!=null)callback.onSaved(file);}
+                catch(Exception e){Throwable cause=e.getCause()==null?e:e.getCause();finished.accept(cause.getMessage()==null?cause.getClass().getSimpleName():cause.getMessage());}
+            }
+        }.execute();
+    }
     private VirtualScreen captureVirtualScreen() throws AWTException {
         GraphicsDevice[] devices = GraphicsEnvironment
                 .getLocalGraphicsEnvironment()
@@ -123,6 +120,10 @@ public final class ScreenshotService {
     }
 
     private BufferedImage crop(BufferedImage source, Rectangle selection) {
+        selection = selection.intersection(new Rectangle(0, 0, source.getWidth(), source.getHeight()));
+        if (selection.width <= 0 || selection.height <= 0) {
+            throw new IllegalArgumentException("Selection is outside the screen");
+        }
         BufferedImage result = new BufferedImage(selection.width, selection.height, BufferedImage.TYPE_INT_RGB);
         Graphics2D g = result.createGraphics();
         try {
@@ -160,12 +161,15 @@ public final class ScreenshotService {
         void cancelled();
     }
 
-    private static final class SelectionWindow extends JWindow {
+    private static final class SelectionWindow extends JFrame {
         private final VirtualScreen screen;
         private final SelectionListener listener;
         private final SelectionPanel panel;
 
         private SelectionWindow(VirtualScreen screen, SelectionListener listener) {
+            super("区域截图 · Esc 取消");
+            setUndecorated(true);
+            setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
             this.screen = screen;
             this.listener = listener;
             this.panel = new SelectionPanel(screen.image, new SelectionListener() {
@@ -180,6 +184,7 @@ public final class ScreenshotService {
                 }
             });
 
+            addWindowListener(new java.awt.event.WindowAdapter(){public void windowClosing(java.awt.event.WindowEvent e){panel.cancel();}});
             setAlwaysOnTop(true);
             setBounds(screen.bounds);
             setContentPane(panel);
@@ -271,9 +276,13 @@ public final class ScreenshotService {
                     g.drawRect(selection.x, selection.y, selection.width - 1, selection.height - 1);
 
                     String size = selection.width + " x " + selection.height;
-                    g.fillRect(selection.x, Math.max(0, selection.y - 22), 88, 20);
+                    g.setFont(new java.awt.Font("Microsoft YaHei UI", java.awt.Font.PLAIN, 24));
+                    java.awt.FontMetrics metrics = g.getFontMetrics();
+                    int badgeHeight = metrics.getHeight() + 12;
+                    int badgeY = Math.max(0, selection.y - badgeHeight);
+                    g.fillRect(selection.x, badgeY, metrics.stringWidth(size) + 16, badgeHeight);
                     g.setColor(Color.BLACK);
-                    g.drawString(size, selection.x + 6, Math.max(14, selection.y - 7));
+                    g.drawString(size, selection.x + 8, badgeY + 6 + metrics.getAscent());
                 }
             } finally {
                 g.dispose();
@@ -288,7 +297,7 @@ public final class ScreenshotService {
             int y = Math.min(start.y, current.y);
             int width = Math.abs(start.x - current.x);
             int height = Math.abs(start.y - current.y);
-            return new Rectangle(x, y, width, height);
+            return new Rectangle(x, y, width, height).intersection(new Rectangle(0, 0, image.getWidth(), image.getHeight()));
         }
     }
 }

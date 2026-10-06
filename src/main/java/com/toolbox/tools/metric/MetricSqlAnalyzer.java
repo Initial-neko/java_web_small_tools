@@ -339,10 +339,37 @@ public class MetricSqlAnalyzer {
 
     private String normalizeExpression(SQLExpr expr) {
         String text = sqlText(expr);
-        return text == null ? "" : text
-                .replaceAll("\\s+", " ")
-                .trim()
-                .toUpperCase(Locale.ROOT);
+        if (text == null) return "";
+        // Druid has already serialized the AST. Normalize only outside quoted tokens:
+        // literal whitespace, escaped quotes and quoted identifier case are semantic.
+        StringBuilder normalized = new StringBuilder();
+        char quote = 0;
+        boolean space = false;
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (quote != 0) {
+                normalized.append(c);
+                if (c == quote) {
+                    if (i + 1 < text.length() && text.charAt(i + 1) == quote) {
+                        normalized.append(text.charAt(++i));
+                    } else {
+                        quote = 0;
+                    }
+                }
+            } else if (Character.isWhitespace(c)) {
+                space = normalized.length() > 0;
+            } else {
+                if (space) normalized.append(' ');
+                space = false;
+                if (c == '\'' || c == '"' || c == '`') {
+                    quote = c;
+                    normalized.append(c);
+                } else {
+                    normalized.append(Character.toUpperCase(c));
+                }
+            }
+        }
+        return normalized.toString();
     }
 
     private String sqlText(SQLExpr expr) {

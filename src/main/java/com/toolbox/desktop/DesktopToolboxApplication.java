@@ -5,7 +5,12 @@ import com.toolbox.desktop.clipboard.ClipboardWatcher;
 import com.toolbox.desktop.screenshot.ScreenshotService;
 import com.toolbox.desktop.ui.DesktopToolboxWindow;
 
+import com.toolbox.desktop.hotkey.GlobalHotkeys;
+import com.toolbox.desktop.hotkey.HotkeySpec;
 import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JLabel;
+import javax.swing.JTextField;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
@@ -35,6 +40,7 @@ public final class DesktopToolboxApplication {
             return;
         }
 
+        com.toolbox.desktop.ui.DesktopFonts.install();
         final ClipboardHistoryStore store = new ClipboardHistoryStore(resolveDataDir());
 
         if (hasArg(args, "--screenshot")) {
@@ -67,24 +73,24 @@ public final class DesktopToolboxApplication {
                     public void onSaved(File file) {
                         if (window != null) {
                             window.refreshAsync();
-                            if (!traySupported) {
-                                window.setVisible(true);
-                            }
+                            window.showWindow();
+                            window.showStatus("截图已复制并保存 · " + file.getName());
                         }
-                        showMessage("Screenshot saved", file.getAbsolutePath());
+                        showMessage("截图已保存", file.getAbsolutePath());
                     }
 
                     public void onCancelled() {
-                        if (window != null && !traySupported) {
-                            window.setVisible(true);
+                        if (window != null) {
+                            window.showWindow();
+                            window.showStatus("已取消截图");
                         }
                     }
 
                     public void onError(Exception error) {
-                        if (window != null && !traySupported) {
-                            window.setVisible(true);
+                        if (window != null) {
+                            window.showWindow();
                         }
-                        showError("Screenshot failed", error);
+                        showError("截图失败", error);
                     }
                 }));
                 timer.setRepeats(false);
@@ -99,6 +105,9 @@ public final class DesktopToolboxApplication {
                 !traySupported
         );
         windowRef.set(window);
+        final GlobalHotkeys hotkeys=new GlobalHotkeys(store.getRoot(),window::showWindow,screenshotAction,window::showStatus);
+        window.setShortcutSettings(()->showShortcutSettings(window,hotkeys));
+        Runtime.getRuntime().addShutdownHook(new Thread(()->{hotkeys.close();watcher.stop();},"desktop-cleanup"));
         watcher.addListener(window::refreshAsync);
         watcher.start();
 
@@ -107,8 +116,20 @@ public final class DesktopToolboxApplication {
         }
 
         window.showWindow();
+        hotkeys.start();
     }
 
+    private static void showShortcutSettings(final DesktopToolboxWindow window,final GlobalHotkeys hotkeys){
+        JPanel panel=new JPanel(new java.awt.GridLayout(0,1,8,8));
+        JTextField open=new JTextField(hotkeys.getOpenKey().toString(),22),screenshot=new JTextField(hotkeys.getScreenshotKey().toString(),22);
+        panel.add(new JLabel("打开剪切板（后台也生效）"));panel.add(open);
+        panel.add(new JLabel("截图（后台也生效）"));panel.add(screenshot);
+        panel.add(new JLabel("格式：Ctrl+Alt+V；支持 Ctrl、Alt、Shift + 字母、数字、F1–F11"));
+        for(java.awt.Component component:panel.getComponents())component.setFont(new java.awt.Font("Microsoft YaHei UI",java.awt.Font.PLAIN,22));
+        if(JOptionPane.showConfirmDialog(window,panel,"全局快捷键",JOptionPane.OK_CANCEL_OPTION,JOptionPane.PLAIN_MESSAGE)!=JOptionPane.OK_OPTION)return;
+        try{hotkeys.update(HotkeySpec.parse(open.getText()),HotkeySpec.parse(screenshot.getText()),message->{window.showStatus(message);JOptionPane.showMessageDialog(window,message,"全局快捷键",JOptionPane.INFORMATION_MESSAGE);});}
+        catch(IllegalArgumentException e){JOptionPane.showMessageDialog(window,e.getMessage(),"快捷键格式错误",JOptionPane.WARNING_MESSAGE);}
+    }
     private static void runScreenshotOnly(final ClipboardHistoryStore store) {
         final ScreenshotService screenshots = new ScreenshotService(store, null);
         SwingUtilities.invokeLater(new Runnable() {
@@ -138,27 +159,27 @@ public final class DesktopToolboxApplication {
         try {
             PopupMenu menu = new PopupMenu();
 
-            MenuItem open = new MenuItem("Clipboard history");
+            MenuItem open = new MenuItem("打开剪切板历史");
             open.addActionListener(e -> SwingUtilities.invokeLater(window::showWindow));
             menu.add(open);
 
-            MenuItem screenshot = new MenuItem("Screenshot");
+            MenuItem screenshot = new MenuItem("截图");
             screenshot.addActionListener(e -> SwingUtilities.invokeLater(screenshotAction));
             menu.add(screenshot);
 
-            MenuItem dataFolder = new MenuItem("Data folder");
+            MenuItem dataFolder = new MenuItem("打开数据目录");
             dataFolder.addActionListener(e -> {
                 try {
                     java.awt.Desktop.getDesktop().open(store.getRoot().toFile());
                 } catch (Exception ex) {
-                    showMessage("Data folder", store.getRoot().toString());
+                    showMessage("数据目录", store.getRoot().toString());
                 }
             });
             menu.add(dataFolder);
 
             menu.addSeparator();
 
-            MenuItem exit = new MenuItem("Exit");
+            MenuItem exit = new MenuItem("退出程序");
             exit.addActionListener(e -> {
                 watcher.stop();
                 TrayIcon icon = findTrayIcon();
@@ -176,7 +197,7 @@ public final class DesktopToolboxApplication {
             SystemTray.getSystemTray().add(icon);
         } catch (AWTException e) {
             window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            showError("Cannot install tray icon", e);
+            showError("托盘安装失败，关闭窗口将退出", e);
         }
     }
 

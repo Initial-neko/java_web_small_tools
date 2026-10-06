@@ -17,6 +17,8 @@ public final class ClipboardEntry {
     private final List<String> filePaths;
     private final String imagePath;
     private final String hash;
+    private final boolean pinned;
+    public boolean isPinned() { return pinned; }
 
     public ClipboardEntry(long id,
                           long createdAt,
@@ -25,6 +27,11 @@ public final class ClipboardEntry {
                           List<String> filePaths,
                           String imagePath,
                           String hash) {
+        this(id,createdAt,type,text,filePaths,imagePath,hash,false);
+    }
+
+    public ClipboardEntry(long id,long createdAt,Type type,String text,List<String> filePaths,String imagePath,String hash,boolean pinned) {
+        this.pinned = pinned;
         this.id = id;
         this.createdAt = createdAt;
         this.type = type;

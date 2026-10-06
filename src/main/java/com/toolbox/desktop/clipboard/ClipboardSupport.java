@@ -109,6 +109,10 @@ public final class ClipboardSupport {
 
     public static boolean restore(ClipboardEntry entry, ClipboardHistoryStore store) {
         Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        return restore(entry, store, clipboard);
+    }
+
+    static boolean restore(ClipboardEntry entry, ClipboardHistoryStore store, Clipboard clipboard) {
         try {
             if (entry.getType() == ClipboardEntry.Type.TEXT) {
                 clipboard.setContents(new java.awt.datatransfer.StringSelection(entry.getText()), null);

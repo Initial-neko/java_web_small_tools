@@ -27,9 +27,21 @@
         <lombok.version>1.18.48</lombok.version>
         <mybatis.generator.version>1.4.2</mybatis.generator.version>
         <druid.version>1.2.28</druid.version>
+        <jna.version>5.14.0</jna.version>
     </properties>
 
     <dependencies>
+        <!-- Fixed and bundled for offline Windows global hotkeys. -->
+        <dependency>
+            <groupId>net.java.dev.jna</groupId>
+            <artifactId>jna</artifactId>
+            <version>${jna.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>net.java.dev.jna</groupId>
+            <artifactId>jna-platform</artifactId>
+            <version>${jna.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -94,7 +106,7 @@
         <finalName>toolbox</finalName>
         <plugins>
             <!--
-              独立桌面包：只包含 com.toolbox.desktop，运行时仅依赖 JDK 8。
+              独立桌面包：只包含 com.toolbox.desktop，运行时使用 JDK 8 与内置 desktop-lib/JNA。
               Web 工具仍由下面的 Spring Boot exec jar 负责。
             -->
             <plugin>
@@ -117,7 +129,27 @@
                                 <manifest>
                                     <mainClass>com.toolbox.desktop.DesktopToolboxApplication</mainClass>
                                 </manifest>
+                                <manifestEntries>
+                                    <Class-Path>desktop-lib/jna-${jna.version}.jar desktop-lib/jna-platform-${jna.version}.jar</Class-Path>
+                                </manifestEntries>
                             </archive>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.6.1</version>
+                <executions>
+                    <execution>
+                        <id>desktop-native-dependencies</id>
+                        <phase>package</phase>
+                        <goals><goal>copy-dependencies</goal></goals>
+                        <configuration>
+                            <includeArtifactIds>jna,jna-platform</includeArtifactIds>
+                            <outputDirectory>${project.build.directory}/desktop-lib</outputDirectory>
                         </configuration>
                     </execution>
                 </executions>

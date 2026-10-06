@@ -12,5 +12,11 @@ if not exist "%JAR%" (
   exit /b 1
 )
 
-start "" javaw -jar "%JAR%"
+where javaw >nul 2>&1
+if errorlevel 1 (
+  echo Java 8 or newer was not found. Set JAVA_HOME and add its bin folder to PATH.
+  pause
+  exit /b 1
+)
+start "" javaw -Dfile.encoding=UTF-8 -jar "%JAR%"
 endlocal

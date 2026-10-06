@@ -73,7 +73,15 @@ Windows 双击 `start.bat`，Linux/Mac 执行 `./start.sh`。
 java -jar target/toolbox-desktop.jar
 ```
 
-Windows 推荐双击 `start-desktop.bat`。
+Windows 推荐双击 `start-desktop.bat`。桌面 JAR 与 `desktop-lib/` 必须一起保留；固定版本 JNA 5.14.0 已随离线包提供，运行不需要联网。
+
+- 正文默认 22px，可调整并保存；支持全文搜索、类型筛选、图片预览和详情。
+- 普通历史默认最多 200 条，可在「上限」设置为 1–10000；超限删除最旧未固定条目及其图片缓存。固定条目置顶、重启保留，不计入普通上限。取消固定后重新参与清理。
+- 默认全局快捷键：`Ctrl+Alt+V` 打开剪切板、`Ctrl+Alt+S` 截图；在「快捷键」修改，重复或被占用的组合会提示，修改失败恢复原注册。全局快捷键目前支持 Windows。
+- 截图框选后进入标注窗口：拖动添加红框；切到文字模式，输入内容后点击图片放置；`Ctrl+Z` 撤销，`Esc` 取消。复制并完成或保存 PNG 后发布标注结果，保留原始尺寸。
+- 历史只管理自有缓存；文件条目指向的原文件、手动另存的 PNG 不参与自动清理。条数限制不等于磁盘容量限制，固定条目由用户主动长期保留。
+
+一键构建发行包：在 Git Bash / Linux 执行 `sh package.sh`。默认使用 Maven 离线缓存并执行完整测试；需要补齐固定依赖时显式加 `--online`，仅需快速打包可加 `--skip-tests`。使用 JDK 自带 jar 生成 ZIP，无需额外 zip 程序。
 
 从源码完整编译：
 
@@ -118,7 +126,7 @@ mvn clean package
 
 执行：
 
-    bash scripts/package-offline.sh
+    sh package.sh
 
 生成：
 

@@ -12,4 +12,4 @@ if [ ! -f "$JAR" ]; then
   exit 1
 fi
 
-exec java -jar "$JAR" --screenshot
+exec java -Dfile.encoding=UTF-8 -jar "$JAR" --screenshot
