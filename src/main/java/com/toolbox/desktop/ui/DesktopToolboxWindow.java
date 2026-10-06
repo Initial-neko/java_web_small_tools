@@ -151,14 +151,28 @@ public final class DesktopToolboxWindow extends JFrame {
 
         List<ClipboardEntry> filtered = new ArrayList<ClipboardEntry>();
         for (ClipboardEntry entry : allEntries) {
-            if (query.isEmpty()
-                    || entry.preview().toLowerCase(Locale.ROOT).contains(query)
-                    || entry.getType().name().toLowerCase(Locale.ROOT).contains(query)) {
+            if (query.isEmpty() || matches(entry, query)) {
                 filtered.add(entry);
             }
         }
         model.setEntries(filtered);
         status.setText(filtered.size() + " / " + allEntries.size() + " items");
+    }
+
+    private boolean matches(ClipboardEntry entry, String query) {
+        if (entry.getType().name().toLowerCase(Locale.ROOT).contains(query)) {
+            return true;
+        }
+        if (entry.getText() != null
+                && entry.getText().toLowerCase(Locale.ROOT).contains(query)) {
+            return true;
+        }
+        for (String path : entry.getFilePaths()) {
+            if (path.toLowerCase(Locale.ROOT).contains(query)) {
+                return true;
+            }
+        }
+        return entry.preview().toLowerCase(Locale.ROOT).contains(query);
     }
 
     private ClipboardEntry selectedEntry() {
