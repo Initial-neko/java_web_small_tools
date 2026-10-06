@@ -27,8 +27,10 @@ mkdir -p "$DIST/lib" "$DIST/optional-lib" "$DIST/drivers" "$DIST/source" "$RELEA
 
 test -f "$ROOT/target/toolbox.jar"
 test -f "$ROOT/target/toolbox-exec.jar"
+test -f "$ROOT/target/toolbox-desktop.jar"
 
 cp "$ROOT/target/toolbox-exec.jar" "$DIST/toolbox-exec.jar"
+cp "$ROOT/target/toolbox-desktop.jar" "$DIST/toolbox-desktop.jar"
 cp "$ROOT/target/toolbox.jar" "$DIST/lib/toolbox.jar"
 
 mvn -B "$DEPENDENCY_PLUGIN:copy-dependencies" -DincludeScope=runtime -DoutputDirectory="$DIST/lib"
@@ -48,6 +50,10 @@ cp "$ROOT/start.bat" "$DIST/start.bat"
 cp "$ROOT/start.sh" "$DIST/start.sh"
 cp "$ROOT/start-classpath.bat" "$DIST/start-classpath.bat"
 cp "$ROOT/start-classpath.sh" "$DIST/start-classpath.sh"
+cp "$ROOT/start-desktop.bat" "$DIST/start-desktop.bat"
+cp "$ROOT/start-desktop.sh" "$DIST/start-desktop.sh"
+cp "$ROOT/screenshot.bat" "$DIST/screenshot.bat"
+cp "$ROOT/screenshot.sh" "$DIST/screenshot.sh"
 
 cp "$ROOT/drivers/README.md" "$DIST/drivers/README.md"
 if compgen -G "$ROOT/drivers/*.jar" > /dev/null; then
@@ -70,7 +76,7 @@ cp -R "$ROOT/src" "$DIST/source/src"
   fi
 } > "$DIST/VERSION.txt"
 
-chmod +x "$DIST/start.sh" "$DIST/start-classpath.sh"
+chmod +x "$DIST/start.sh" "$DIST/start-classpath.sh" "$DIST/start-desktop.sh" "$DIST/screenshot.sh"
 
 (
   cd "$DIST"
