@@ -5,6 +5,7 @@ import com.toolbox.desktop.clipboard.ClipboardWatcher;
 import com.toolbox.desktop.screenshot.ScreenshotService;
 import com.toolbox.desktop.ui.DesktopToolboxWindow;
 
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
@@ -66,14 +67,23 @@ public final class DesktopToolboxApplication {
                     public void onSaved(File file) {
                         if (window != null) {
                             window.refreshAsync();
+                            if (!traySupported) {
+                                window.setVisible(true);
+                            }
                         }
                         showMessage("Screenshot saved", file.getAbsolutePath());
                     }
 
                     public void onCancelled() {
+                        if (window != null && !traySupported) {
+                            window.setVisible(true);
+                        }
                     }
 
                     public void onError(Exception error) {
+                        if (window != null && !traySupported) {
+                            window.setVisible(true);
+                        }
                         showError("Screenshot failed", error);
                     }
                 }));
@@ -151,7 +161,10 @@ public final class DesktopToolboxApplication {
             MenuItem exit = new MenuItem("Exit");
             exit.addActionListener(e -> {
                 watcher.stop();
-                SystemTray.getSystemTray().remove(findTrayIcon());
+                TrayIcon icon = findTrayIcon();
+                if (icon != null) {
+                    SystemTray.getSystemTray().remove(icon);
+                }
                 System.exit(0);
             });
             menu.add(exit);
@@ -162,6 +175,7 @@ public final class DesktopToolboxApplication {
             trayIcon = icon;
             SystemTray.getSystemTray().add(icon);
         } catch (AWTException e) {
+            window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             showError("Cannot install tray icon", e);
         }
     }
