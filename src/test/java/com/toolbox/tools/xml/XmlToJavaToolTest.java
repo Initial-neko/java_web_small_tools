@@ -132,12 +132,14 @@ class XmlToJavaToolTest {
         if (compiler == null) {
             return; // JRE 环境跳过编译验证
         }
+        Path classRoot = root.resolve("classes");
+        Files.createDirectories(classRoot); // Java 8 javac 不会自动创建输出目录
         StandardJavaFileManager fileManager = compiler.getStandardFileManager(null, null, StandardCharsets.UTF_8);
         Iterable<? extends javax.tools.JavaFileObject> units =
                 fileManager.getJavaFileObjectsFromFiles(Arrays.asList(sourceFile.toFile()));
         JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, null,
                 Arrays.asList("-classpath", System.getProperty("java.class.path"),
-                        "-encoding", "UTF-8", "-d", root.resolve("classes").toString()),
+                        "-encoding", "UTF-8", "-d", classRoot.toString()),
                 null, units);
         Boolean ok = task.call();
         fileManager.close();
