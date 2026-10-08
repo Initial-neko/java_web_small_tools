@@ -15,6 +15,9 @@
 | JSON 格式化 | `json-format` | 美化、压缩、校验、转义/反转义 |
 | 文本 Diff | `text-diff` | 两段文本按行对比，输出 unified diff 与差异详情 |
 | JSON 对比 | `json-compare` | 两个 JSON 结构化对比，按路径输出差异 |
+| XML 格式化 | `xml-format` | XML 美化（2 空格缩进）、压缩、校验；禁用 DTD 防 XXE |
+| XML → JSON | `xml-to-json` | 属性→`@键`、文本→`#text`、同名重复元素→数组，数字/布尔类型推断可开关 |
+| XML → Java | `xml-to-java` | XML 样本生成 Normal/Lombok Entity 或 Fastjson2 显式 Mapping Code，类名默认取根元素名 |
 | JSON → Java | `json-to-java` | Fastjson2 JSON 样本生成 Normal/Lombok Entity 或显式 Mapping Code |
 | DDL → Java | `ddl-to-java` | Druid AST 解析 DM/Oracle CREATE TABLE 生成 Entity |
 | JDBC Query → Java | `jdbc-query-to-java` | 外置 JDBC Driver + ResultSetMetaData 生成 Entity |
@@ -54,6 +57,7 @@ Windows 双击 `start.bat`，Linux/Mac 执行 `./start.sh`。
 ## 技术栈
 - Java 8 + Spring Boot 2.7.18
 - Fastjson2 2.0.65（工具侧 JSON 处理）
+- JDK 内置 DOM/Transformer（XML 解析与格式化，禁用 DTD/外部实体防 XXE）
 - MyBatis Generator 1.4.2（Java 8 数据库代码生成）
 - Alibaba Druid 1.2.28（DM SQL Parser / SchemaStat）
 - java-diff-utils 4.12（文本 Diff）
@@ -64,6 +68,7 @@ Windows 双击 `start.bat`，Linux/Mac 执行 `./start.sh`。
 ## 内网与数据工具文档
 
 - `docs/entity-generator/README.md` — JSON/Excel/DDL/JDBC Query → Entity、统一类型映射
+- `docs/xml-tools/README.md` — XML 格式化/转 JSON/转 Java 的确定性规则与安全边界
 - `docs/offline-package/README.md` — 完整离线 ZIP、lib/、启动与校验
 - `docs/mybatis-generator/README.md` — MyBatis Generator、Oracle/达梦、外置 Driver、离线构建
 - `drivers/README.md` — DM/Oracle JDBC Driver 放置和版本说明
