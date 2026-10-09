@@ -21,7 +21,7 @@ jobs:
           cache: maven
 
       - name: Build tested offline package
-        run: bash scripts/package-offline.sh
+        run: xvfb-run -a sh package.sh --online
 
       - name: Upload offline ZIP
         uses: actions/upload-artifact@v4
