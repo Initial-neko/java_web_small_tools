@@ -150,11 +150,12 @@ function renderLineageViewer(main) {
     main.innerHTML = taskHeader() + '<div class="result-box error">前端脚本未加载成功，请检查 /lineage-viewer/app.js 是否可访问。\x3C/div>';
     return;
   }
-  main.innerHTML = taskHeader() + '<div id="lv-root" class="lv-root"></div>';
-  window.LineageViewer.mount(document.getElementById('lv-root'));
+  main.innerHTML = taskHeader() + '<div id="lv-container"></div>';
+  window.LineageViewer.mount(document.getElementById('lv-container'));
 }
 function curlExample(endpoint,example) {
   let path=endpoint.path.replace('{sheetIndex}','0');
+  if(example.path) for(const key of Object.keys(example.path)) path=path.replace('{'+key+'}',encodeURIComponent(example.path[key]));
   if(example.query) path+='?'+new URLSearchParams(example.query).toString();
   let command='curl -X '+endpoint.method+' '+shellQuote(location.origin+path);
   const separator=' '+String.fromCharCode(92,10)+'  ';

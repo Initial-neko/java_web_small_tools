@@ -100,8 +100,21 @@ class ToolHelpApiTest {
             for (JsonNode endpoint : tool.path("endpoints")) {
                 if (!endpoint.path("testable").asBoolean()) continue;
                 for (JsonNode example : endpoint.path("examples")) {
-                    JsonNode result = mapper.readTree(mvc.perform(post(endpoint.path("path").asText())
-                            .contentType(MediaType.APPLICATION_JSON).content(example.path("body").toString()))
+                    String url = endpoint.path("path").asText();
+                    java.util.Iterator<java.util.Map.Entry<String,JsonNode>> paths = example.path("path").fields();
+                    while (paths.hasNext()) {
+                        java.util.Map.Entry<String,JsonNode> p = paths.next();
+                        url = url.replace("{" + p.getKey() + "}", p.getValue().asText());
+                    }
+                    org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder request =
+                            "GET".equals(endpoint.path("method").asText()) ? get(url) : post(url)
+                            .contentType(MediaType.APPLICATION_JSON).content(example.path("body").toString());
+                    java.util.Iterator<java.util.Map.Entry<String,JsonNode>> queries = example.path("query").fields();
+                    while (queries.hasNext()) {
+                        java.util.Map.Entry<String,JsonNode> p = queries.next();
+                        request.param(p.getKey(), p.getValue().asText());
+                    }
+                    JsonNode result = mapper.readTree(mvc.perform(request)
                             .andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
                     assertTrue(result.path("success").asBoolean(), tool.path("name") + ": " + result);
                     assertFalse(result.path("data").isNull());

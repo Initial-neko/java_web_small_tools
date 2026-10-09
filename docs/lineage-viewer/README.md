@@ -51,7 +51,7 @@
 
 ## 3. 后端计算（`LineageGraph`）
 
-一次构建、常驻内存，之后所有查询都是 Map 查找。
+一次构建、常驻内存，表与 SQL 详情使用索引，列表、搜索和子图仍按相关数据规模遍历。
 
 构建分四步：
 
@@ -140,7 +140,7 @@ JSON 兼容两种形态：
 
 ```bash
 # 方式一：启动参数指定
-java -jar toolbox-exec.jar --lineage.data-file=/data/sqls.json
+java -Dlineage.data-file=/data/sqls.json -jar toolbox-exec.jar
 
 # 方式二：放到运行目录
 cp /data/sqls.json ./lineage-sqls.json
@@ -161,7 +161,7 @@ curl -X POST http://localhost:8088/api/lineage-viewer/rebuild \
 
 ## 6. 性能
 
-一次构建、常驻内存，请求侧全部是 O(1) 的 Map 查找。
+一次构建、常驻内存，消费者计数使用索引 O(1) 查找；列表与搜索会遍历表，子图遍历相关邻接边。
 
 300 SQL / 196 表下的实测：**载入 76ms + 计算 4ms**，单表全量回溯（55 节点 / 63 边）毫秒级返回。
 
@@ -258,3 +258,11 @@ mvn -B test -Dtest=LineageGraphTest
 - **单表血缘图在链路很宽时会比较大**（演示数据最多 55 节点 / 63 边）。
   上游层数默认给 6 层、缩放过小时自动隐藏标签，都是为这个场景准备的；
   再大建议先用搜索定位到具体表，而不是从末端表全量展开。
+
+## PR 验收补充
+
+SQL name 必须唯一；重复 name 会拒绝整次重建，避免边详情错误回溯。输出清单内重复表只计一次。空白或结构错误 JSON 不替换现有图；显式 `[]` 可清空。无 name 的对象记录仍跳过。
+
+完整 JSON DOM 解析不是流式加载，长 SQL 正文仍占用内存。列表消费者计数已改为预建索引；图缩放标注按节点和边各遍历一次。
+
+重复检查：`node src/test/js/lineage-ui.test.cjs`；启动测试服务后 `node scripts/verify-lineage-api.cjs http://127.0.0.1:18093 target/lineage-evidence`，输出固定 JSON 样例、正确性断言与逐阶段耗时。

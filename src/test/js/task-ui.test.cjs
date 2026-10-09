@@ -10,6 +10,10 @@ for(const tool of catalog.tools) for(const endpoint of tool.endpoints) for(const
   const command=vm.runInContext('curlExample(endpoint,example)',context);
   assert(!command.includes('\n+'), 'Copied curl must not contain diff markers: '+tool.name);
   assert(command.includes('curl -X '+endpoint.method));
+  assert(!command.includes('{name}'), 'Copied curl must contain a usable table/SQL path: '+tool.name);
+  if(tool.name==='lineage-viewer' && endpoint.path.endsWith('/rebuild')) {
+    assert(example.body && !Array.isArray(example.body) && (example.body.json || Array.isArray(example.body.records)), 'Rebuild requires an object wrapper');
+  }
   if(example.body) assert(command.includes('--data-binary '));
   if(example.body) assert(!/[^\x00-\x7f]/.test(command),'JSON curl payload must survive Windows shell argument encoding');
   checked++;

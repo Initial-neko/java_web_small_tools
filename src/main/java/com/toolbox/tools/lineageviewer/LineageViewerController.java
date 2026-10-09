@@ -132,7 +132,7 @@ public class LineageViewerController {
     /** 卡片用：额外带上「消费该表的 SQL 数」。源头表没有产出 SQL，但有消费 SQL。 */
     private Map<String, Object> toTableCardWithConsumers(LineageGraph g, LineageTableNode n) {
         Map<String, Object> m = toTableCard(n);
-        m.put("consumingSqlCount", g.consumersOf(n.getName()).size());
+        m.put("consumingSqlCount", g.consumerCount(n.getName()));
         return m;
     }
 
@@ -186,7 +186,7 @@ public class LineageViewerController {
         data.put("clusterId", g.clusterOf(name));
         List<LineageSqlRecord> producers = g.producersOf(name);
         data.put("producerCount", producers.size());
-        data.put("consumerCount", g.consumersOf(name).size());
+        data.put("consumerCount", g.consumerCount(name));
 
         data.put("upstreamTables", distinctSorted(upstreamNames(g, name)));
         data.put("downstreamTables", distinctSorted(downstreamNames(g, name)));

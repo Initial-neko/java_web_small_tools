@@ -18,6 +18,8 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * SQL 记录加载器。
@@ -28,8 +30,8 @@ import java.util.List;
  *
  * <p><b>为什么先读成字节再解析：</b>原先的实现直接对整个文件做完整 DOM 解析，
  * 94MB 的 JSON 会瞬时占用约 400MB 堆内存，很容易触发超时甚至 OOM。
- * 这里先整体读入字节再做一次解析，内存峰值可控；对于超大文件，
- * {@link #load()} 会打印体积与耗时，便于定位瓶颈。</p>
+     * 当前仍使用完整 DOM 解析，超大文件需要足够堆内存。
+     * 字节解析避免中间 UTF-16 字符串，但并非流式读取。</p>
  */
 public class LineageDataLoader {
 
@@ -108,8 +110,9 @@ public class LineageDataLoader {
     }
 
     private List<LineageSqlRecord> readFile(File f) throws IOException {
-        byte[] bytes = readAll(Files.newInputStream(f.toPath()));
-        return parse(bytes);
+        try (InputStream in = Files.newInputStream(f.toPath())) {
+            return parse(readAll(in));
+        }
     }
 
     /**
@@ -117,7 +120,7 @@ public class LineageDataLoader {
      */
     public List<LineageSqlRecord> parse(byte[] json) {
         if (json == null || json.length == 0) {
-            return new ArrayList<LineageSqlRecord>();
+            throw new IllegalArgumentException("JSON 不能为空；清空数据请提供 []");
         }
         Object root = JSON.parse(trimBom(json));
         return parseRoot(root);
@@ -125,7 +128,7 @@ public class LineageDataLoader {
 
     public List<LineageSqlRecord> parse(String json) {
         if (json == null || json.trim().isEmpty()) {
-            return new ArrayList<LineageSqlRecord>();
+            throw new IllegalArgumentException("JSON 不能为空；清空数据请提供 []");
         }
         return parseRoot(JSON.parse(json));
     }
@@ -134,15 +137,18 @@ public class LineageDataLoader {
         JSONArray arrayNode = null;
         if (root instanceof JSONArray) {
             arrayNode = (JSONArray) root;
-        } else if (root instanceof JSONObject) {
-            arrayNode = ((JSONObject) root).getJSONArray("records");
+        } else if (root instanceof JSONObject && ((JSONObject) root).get("records") instanceof JSONArray) {
+            arrayNode = (JSONArray) ((JSONObject) root).get("records");
         }
         List<LineageSqlRecord> out = new ArrayList<LineageSqlRecord>();
         if (arrayNode == null) {
-            return out;
+            throw new IllegalArgumentException("JSON 必须是数组或包含 records 数组的对象");
         }
-
+        Set<String> names = new HashSet<String>();
         for (int i = 0; i < arrayNode.size(); i++) {
+            if (!(arrayNode.get(i) instanceof JSONObject)) {
+                throw new IllegalArgumentException("第 " + (i + 1) + " 条记录必须是对象");
+            }
             JSONObject node = arrayNode.getJSONObject(i);
             if (node == null) {
                 continue;
@@ -157,6 +163,7 @@ public class LineageDataLoader {
             r.setOutputTables(parseTableList(node.get("outputTables"), node.get("outputtables")));
             String name = r.getName();
             if (name != null && name.trim().length() > 0) {
+                if (!names.add(name)) throw new IllegalArgumentException("SQL name 重复: " + name);
                 out.add(r);
             }
         }

@@ -52,6 +52,13 @@ var LineageViewer = (function () {
     toastTimer: null
   };
 
+  var requests = {};
+  function currentRequest(key) {
+    var root = STATE.root;
+    var id = requests[key] = (requests[key] || 0) + 1;
+    return function () { return !!root && STATE.root === root && requests[key] === id; };
+  }
+
   // ---------------------------------------------------------------- 工具
 
   function $(id) { return document.getElementById(id); }
@@ -97,34 +104,15 @@ var LineageViewer = (function () {
   /** SQL 语法高亮：先转义再按词法着色，避免注入风险 */
   function highlightSql(sql) {
     if (!sql) return '<span class="lv-cmt">-- 该 SQL 未提供正文 --</span>';
-    var out = esc(sql);
-
-    // 单行注释与字符串：先占位，避免内部被词法误伤
-    var blocks = [];
-    out = out.replace(/(--[^\n]*)/g, function (m) {
-      blocks.push('<span class="lv-cmt">' + m + '</span>');
-      return '\u0000' + (blocks.length - 1) + '\u0000';
+    return String(sql).replace(/--[^\n]*|\/\*[\s\S]*?\*\/|'(?:''|[^'])*'|\b[A-Za-z_][A-Za-z0-9_]*\b|\b\d+(?:\.\d+)?\b|[\s\S]/g, function (token) {
+      var escaped = esc(token), up = token.toUpperCase(), kind = '';
+      if (token.indexOf('--') === 0 || token.indexOf('/*') === 0) kind = 'cmt';
+      else if (token.charAt(0) === "'") kind = 'str';
+      else if (/^\d/.test(token)) kind = 'num';
+      else if (SQL_KEYWORDS.indexOf(up) >= 0) kind = 'kw';
+      else if (SQL_FUNCS.indexOf(up) >= 0) kind = 'fn';
+      return kind ? '<span class="lv-' + kind + '">' + escaped + '</span>' : escaped;
     });
-    out = out.replace(/('[^'\n]*')/g, function (m) {
-      blocks.push('<span class="lv-str">' + m + '</span>');
-      return '\u0001' + (blocks.length - 1) + '\u0001';
-    });
-
-    // 关键词
-    out = out.replace(/\b([A-Za-z_][A-Za-z0-9_]*)\b/g, function (m) {
-      var up = m.toUpperCase();
-      if (SQL_KEYWORDS.indexOf(up) >= 0) return '<span class="lv-kw">' + m + '</span>';
-      if (SQL_FUNCS.indexOf(up) >= 0) return '<span class="lv-fn">' + m + '</span>';
-      return m;
-    });
-
-    // 数字
-    out = out.replace(/\b(\d+)\b/g, '<span class="lv-num">$1</span>');
-
-    // 还原占位
-    out = out.replace(/\u0000(\d+)\u0000/g, function (_, i) { return blocks[+i]; });
-    out = out.replace(/\u0001(\d+)\u0001/g, function (_, i) { return blocks[+i]; });
-    return out;
   }
 
   // ---------------------------------------------------------------- 骨架
@@ -225,6 +213,7 @@ var LineageViewer = (function () {
   // ---------------------------------------------------------------- 视图切换
 
   function showList() {
+    ['open', 'graph', 'detail'].forEach(function (key) { requests[key] = (requests[key] || 0) + 1; });
     $('lv-viewList').style.display = '';
     $('lv-viewGraph').style.display = 'none';
     $('lv-topbarSearch').style.display = 'none';
@@ -241,7 +230,9 @@ var LineageViewer = (function () {
   // ---------------------------------------------------------------- 列表视图
 
   function loadOverview() {
+    var current = currentRequest('overview');
     return api(API + '/overview').then(function (data) {
+      if (!current()) return;
       STATE.overview = data;
 
       var metrics = [
@@ -263,10 +254,12 @@ var LineageViewer = (function () {
   }
 
   function loadTableList() {
+    var current = currentRequest('list');
     var url = API + '/tables/leaves?scope=' + encodeURIComponent(STATE.scope) +
       '&keyword=' + encodeURIComponent(STATE.keyword);
 
     return api(url).then(function (list) {
+      if (!current()) return;
       var grid = $('lv-tableGrid');
 
       if (!list.length) {
@@ -318,6 +311,7 @@ var LineageViewer = (function () {
   // ---------------------------------------------------------------- 图视图
 
   function openTable(tableName) {
+    var current = currentRequest('open');
     STATE.currentTable = tableName;
     showGraph();
 
@@ -332,17 +326,21 @@ var LineageViewer = (function () {
       loadLineageGraph(tableName),
       loadTableDetail(tableName)
     ]).then(function () {
+      if (!current()) return;
       $('lv-detailLoading').style.display = 'none';
     }).catch(function (e) {
+      if (!current()) return;
       $('lv-detailLoading').style.display = 'none';
       toast('加载失败：' + e.message);
     });
   }
 
   function loadLineageGraph(tableName) {
+    var current = currentRequest('graph');
     var url = API + '/tables/' + encodeURIComponent(tableName) + '/lineage?depth=' + STATE.depth;
 
     return api(url).then(function (data) {
+      if (!current()) return;
       $('lv-graphTitle').textContent = data.focus;
       $('lv-graphMeta').textContent = data.nodeCount + ' 个节点 · ' + data.edgeCount +
         ' 条关系 · 上游最长 ' + data.maxUpstreamDepth + ' 跳';
@@ -454,7 +452,7 @@ var LineageViewer = (function () {
             'border-color': function (ele) { return ele.data('color'); },
             'label': 'data(label)',
             'font-family': 'ui-monospace, Menlo, Consolas, monospace',
-            'font-size': 11.5,
+            'font-size': 16,
             'color': '#1f2329',
             'text-valign': 'center',
             'text-halign': 'center',
@@ -479,7 +477,7 @@ var LineageViewer = (function () {
             'border-color': '#ef7a5a',
             'border-width': 3,
             'font-weight': 'bold',
-            'font-size': 12.5,
+            'font-size': 18,
             'color': '#c2410c'
           }
         },
@@ -570,7 +568,7 @@ var LineageViewer = (function () {
     var cy = STATE.cy;
     if (!cy || cy.elements().length === 0) return;
 
-    var MIN_READABLE_ZOOM = 0.62;
+    var MIN_READABLE_ZOOM = 1;
     cy.fit(undefined, 60);
 
     if (cy.zoom() < MIN_READABLE_ZOOM) {
@@ -597,18 +595,14 @@ var LineageViewer = (function () {
       cy.nodes().removeClass('nolabel');
     } else {
       var focusId = STATE.currentTable;
+      var neighbors = new Set([focusId]);
+      cy.edges().forEach(function (e) {
+        var source = e.data('source'), target = e.data('target');
+        if (source === focusId) neighbors.add(target);
+        if (target === focusId) neighbors.add(source);
+      });
       cy.nodes().forEach(function (n) {
-        var id = n.id();
-        var keep = id === focusId;
-        if (!keep) {
-          cy.edges().forEach(function (e) {
-            if ((e.data('source') === focusId && e.data('target') === id) ||
-                (e.data('target') === focusId && e.data('source') === id)) {
-              keep = true;
-            }
-          });
-        }
-        n.toggleClass('nolabel', !keep);
+        n.toggleClass('nolabel', !neighbors.has(n.id()));
       });
     }
     cy.style().update();
@@ -629,7 +623,9 @@ var LineageViewer = (function () {
   // ---------------------------------------------------------------- 详情侧栏
 
   function loadTableDetail(tableName) {
+    var current = currentRequest('detail');
     return api(API + '/tables/' + encodeURIComponent(tableName)).then(function (d) {
+      if (!current()) return;
       renderTableDetail(d);
     });
   }
@@ -687,7 +683,7 @@ var LineageViewer = (function () {
       '<span class="lv-count-pill">' + d.producers.length + '</span></div>';
 
     if (!d.producers.length) {
-      html += '<div style="font-size:12.5px;color:var(--lv-text-3);line-height:1.6">' +
+      html += '<div style="font-size:16px;color:var(--lv-text-3);line-height:1.6">' +
         '该表没有产出作业 —— 它是从外部系统接入的原始表（源头表）。' +
         '它的血缘体现在下游：有 ' + d.consumerCount + ' 条 SQL 读取它。</div>';
     } else {
@@ -709,17 +705,19 @@ var LineageViewer = (function () {
 
   /** 边详情：这条关系由哪些 SQL 产出 */
   function loadEdgeDetail(from, to) {
+    var current = currentRequest('detail');
     $('lv-detailLoading').style.display = 'none';
 
     api(API + '/edges/detail?from=' + encodeURIComponent(from) + '&to=' + encodeURIComponent(to))
       .then(function (d) {
+        if (!current()) return;
         var html = '';
 
         html += '<div class="lv-detail-head">' +
           '<div class="lv-detail-kind">血缘关系</div>' +
-          '<div class="lv-detail-name" style="font-size:12.5px">' + esc(from) + '</div>' +
-          '<div style="text-align:center;color:var(--lv-focus);font-size:15px;margin:3px 0">↓</div>' +
-          '<div class="lv-detail-name" style="font-size:12.5px">' + esc(to) + '</div>' +
+          '<div class="lv-detail-name" style="font-size:16px">' + esc(from) + '</div>' +
+          '<div style="text-align:center;color:var(--lv-focus);font-size:16px;margin:3px 0">↓</div>' +
+          '<div class="lv-detail-name" style="font-size:16px">' + esc(to) + '</div>' +
           '<div class="lv-detail-sub"><span class="lv-tag focus">' + d.weight +
           ' 条 SQL 造成此关系</span></div>' +
           '</div>';
@@ -728,7 +726,7 @@ var LineageViewer = (function () {
           '<span class="lv-count-pill">' + d.sqls.length + '</span></div>';
 
         if (!d.sqls.length) {
-          html += '<div style="font-size:12.5px;color:var(--lv-text-3)">未找到对应的 SQL 记录。</div>';
+          html += '<div style="font-size:16px;color:var(--lv-text-3)">未找到对应的 SQL 记录。</div>';
         } else {
           html += d.sqls.map(function (s, i) {
             return sqlCardHtml(s, 'e' + i, true);

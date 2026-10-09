@@ -32,7 +32,7 @@
   --lv-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
 
   color: var(--lv-text);
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.6;
 
   /* 抵消 Toolbox .main 的 padding，让顶栏通栏 */
@@ -74,7 +74,7 @@
 }
 
 .lv-brand-mark { color: var(--lv-accent); font-size: 19px; line-height: 1; }
-.lv-brand-text { font-size: 15.5px; font-weight: 700; letter-spacing: .2px; }
+.lv-brand-text { font-size: 16px; font-weight: 700; letter-spacing: .2px; }
 
 .lv-topbar-search {
   display: flex;
@@ -109,14 +109,14 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13.5px;
+  font-size: 16px;
   color: var(--lv-text-2);
   min-width: 0;
 }
 .lv-crumbs .lv-crumb-sep { color: var(--lv-text-3); }
 .lv-crumbs .lv-crumb-current {
   font-family: var(--lv-mono);
-  font-size: 13.5px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--lv-text);
   white-space: nowrap;
@@ -127,7 +127,7 @@
 .lv-topbar-right { margin-left: auto; flex: 0 0 auto; }
 
 .lv-stat-inline {
-  font-size: 12.5px;
+  font-size: 16px;
   color: var(--lv-text-3);
   font-variant-numeric: tabular-nums;
 }
@@ -156,7 +156,7 @@
 .lv-hero-sub {
   margin: 0 0 20px;
   color: var(--lv-text-2);
-  font-size: 13.5px;
+  font-size: 16px;
   max-width: 720px;
 }
 
@@ -178,7 +178,7 @@
   font-variant-numeric: tabular-nums;
 }
 
-.lv-metric-label { font-size: 12px; color: var(--lv-text-3); margin-top: 1px; }
+.lv-metric-label { font-size: 16px; color: var(--lv-text-3); margin-top: 1px; }
 
 /* ------------------------------------------------------------------ 列表面板 */
 
@@ -236,7 +236,7 @@
   border-radius: 50%;
   background: var(--lv-bg-subtle);
   color: var(--lv-text-2);
-  font-size: 11px;
+  font-size: 16px;
   line-height: 1;
   display: flex;
   align-items: center;
@@ -257,7 +257,7 @@
   background: transparent;
   padding: 6px 14px;
   border-radius: 5px;
-  font-size: 13px;
+  font-size: 16px;
   color: var(--lv-text-2);
   transition: all .15s;
 }
@@ -271,7 +271,7 @@
 
 .lv-list-count {
   margin-left: auto;
-  font-size: 12.5px;
+  font-size: 16px;
   color: var(--lv-text-3);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -281,7 +281,7 @@
 
 .lv-table-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(272px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 11px;
 }
 
@@ -316,7 +316,7 @@
 .lv-card-head { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
 
 .lv-layer-badge {
-  font-size: 10.5px;
+  font-size: 16px;
   font-weight: 700;
   letter-spacing: .4px;
   padding: 1px 6px;
@@ -329,7 +329,7 @@
 
 .lv-card-name {
   font-family: var(--lv-mono);
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--lv-text);
   white-space: nowrap;
@@ -342,7 +342,7 @@
 .lv-card-stats {
   display: flex;
   gap: 14px;
-  font-size: 12px;
+  font-size: 16px;
   color: var(--lv-text-3);
   font-variant-numeric: tabular-nums;
 }
@@ -353,7 +353,7 @@
   position: absolute;
   right: 12px;
   top: 12px;
-  font-size: 10.5px;
+  font-size: 16px;
   color: var(--lv-focus);
   background: var(--lv-focus-soft);
   padding: 1px 6px;
@@ -365,8 +365,8 @@
 
 .lv-empty-state { padding: 64px 20px; text-align: center; color: var(--lv-text-3); }
 .lv-empty-icon { font-size: 32px; margin-bottom: 8px; opacity: .5; }
-.lv-empty-title { font-size: 15px; font-weight: 600; color: var(--lv-text-2); margin-bottom: 4px; }
-.lv-empty-desc { font-size: 13px; }
+.lv-empty-title { font-size: 16px; font-weight: 600; color: var(--lv-text-2); margin-bottom: 4px; }
+.lv-empty-desc { font-size: 16px; }
 
 /* ------------------------------------------------------------------ 图视图 */
 
@@ -395,14 +395,14 @@
 
 .lv-graph-title {
   font-family: var(--lv-mono);
-  font-size: 14.5px;
+  font-size: 16px;
   font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.lv-graph-meta { font-size: 12px; color: var(--lv-text-3); margin-top: 1px; }
+.lv-graph-meta { font-size: 16px; color: var(--lv-text-3); margin-top: 1px; }
 
 .lv-graph-actions { display: flex; align-items: center; gap: 7px; flex: 0 0 auto; }
 
@@ -410,7 +410,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 12.5px;
+  font-size: 16px;
   color: var(--lv-text-2);
 }
 
@@ -431,7 +431,7 @@
   border-radius: var(--lv-radius-sm);
   background: var(--lv-bg-panel);
   color: var(--lv-text-2);
-  font-size: 12.5px;
+  font-size: 16px;
   transition: all .15s;
 }
 .lv-tool-btn:hover {
@@ -456,7 +456,7 @@
   gap: 14px;
   padding: 8px 18px;
   border-top: 1px solid var(--lv-border);
-  font-size: 12px;
+  font-size: 16px;
   color: var(--lv-text-2);
   flex-wrap: wrap;
 }
@@ -477,7 +477,7 @@
 }
 .lv-legend-sep { width: 1px; height: 14px; background: var(--lv-border); }
 
-.lv-graph-hint { flex: 0 0 auto; padding: 6px 18px 9px; font-size: 11.5px; color: var(--lv-text-3); }
+.lv-graph-hint { flex: 0 0 auto; padding: 6px 18px 9px; font-size: 16px; color: var(--lv-text-3); }
 
 /* ------------------------------------------------------------------ 详情侧栏 */
 
@@ -490,7 +490,7 @@
   min-height: 0;
 }
 
-.lv-detail-loading { padding: 28px; color: var(--lv-text-3); font-size: 13px; }
+.lv-detail-loading { padding: 28px; color: var(--lv-text-3); font-size: 16px; }
 .lv-detail-body { padding: 16px 18px 32px; }
 
 .lv-detail-head {
@@ -500,7 +500,7 @@
 }
 
 .lv-detail-kind {
-  font-size: 11px;
+  font-size: 16px;
   font-weight: 700;
   letter-spacing: .5px;
   color: var(--lv-text-3);
@@ -510,7 +510,7 @@
 
 .lv-detail-name {
   font-family: var(--lv-mono);
-  font-size: 14.5px;
+  font-size: 16px;
   font-weight: 700;
   word-break: break-all;
   line-height: 1.45;
@@ -523,16 +523,16 @@
   gap: 10px;
   padding: 6px 0;
   border-bottom: 1px dashed var(--lv-border);
-  font-size: 13px;
+  font-size: 16px;
 }
 .lv-kv:last-child { border-bottom: none; }
-.lv-kv-key { flex: 0 0 88px; color: var(--lv-text-3); font-size: 12.5px; }
+.lv-kv-key { flex: 0 0 88px; color: var(--lv-text-3); font-size: 16px; }
 .lv-kv-val { flex: 1 1 auto; min-width: 0; word-break: break-word; color: var(--lv-text); }
 .lv-kv-val .lv-none { color: var(--lv-text-3); }
 
 .lv-section { margin-top: 18px; }
 .lv-section-title {
-  font-size: 12px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--lv-text-2);
   letter-spacing: .3px;
@@ -544,7 +544,7 @@
 .lv-section-title .lv-count-pill {
   background: var(--lv-bg-subtle);
   color: var(--lv-text-3);
-  font-size: 11px;
+  font-size: 16px;
   padding: 0 7px;
   border-radius: 9px;
   font-weight: 600;
@@ -554,7 +554,7 @@
 .lv-chip-list { display: flex; flex-wrap: wrap; gap: 5px; }
 .lv-chip {
   font-family: var(--lv-mono);
-  font-size: 11.5px;
+  font-size: 16px;
   padding: 2px 8px;
   border-radius: 5px;
   background: var(--lv-bg-subtle);
@@ -591,7 +591,7 @@
 
 .lv-sql-toggle {
   color: var(--lv-text-3);
-  font-size: 10px;
+  font-size: 16px;
   margin-top: 4px;
   transition: transform .15s;
   flex: 0 0 auto;
@@ -602,22 +602,22 @@
 
 .lv-sql-name {
   font-family: var(--lv-mono);
-  font-size: 12.5px;
+  font-size: 16px;
   font-weight: 600;
   word-break: break-all;
   line-height: 1.4;
 }
 
-.lv-sql-source { font-size: 11.5px; color: var(--lv-text-3); margin-top: 2px; }
+.lv-sql-source { font-size: 16px; color: var(--lv-text-3); margin-top: 2px; }
 
 .lv-sql-card-body { display: none; padding: 11px; border-top: 1px solid var(--lv-border); }
 .lv-sql-card.open .lv-sql-card-body { display: block; }
 
-.lv-sql-desc { font-size: 12.5px; color: var(--lv-text-2); margin-bottom: 9px; line-height: 1.55; }
+.lv-sql-desc { font-size: 16px; color: var(--lv-text-2); margin-bottom: 9px; line-height: 1.55; }
 
 .lv-sql-code {
   font-family: var(--lv-mono);
-  font-size: 11.5px;
+  font-size: 16px;
   line-height: 1.6;
   background: #1e2430;
   color: #cdd6e4;
@@ -633,13 +633,13 @@
 .lv-sql-code .lv-num { color: #ff9e64; }
 .lv-sql-code .lv-cmt { color: #5c6370; font-style: italic; }
 
-.lv-sql-tables { margin-top: 9px; font-size: 11.5px; }
+.lv-sql-tables { margin-top: 9px; font-size: 16px; }
 .lv-sql-tables-row { display: flex; gap: 7px; margin-bottom: 4px; align-items: baseline; }
 .lv-sql-tables-row .lv-lbl { flex: 0 0 46px; color: var(--lv-text-3); }
 .lv-sql-tables-row .lv-val { font-family: var(--lv-mono); color: var(--lv-text-2); word-break: break-all; }
 
 .lv-tag {
-  font-size: 10.5px;
+  font-size: 16px;
   font-weight: 600;
   padding: 1px 6px;
   border-radius: 4px;
@@ -658,7 +658,7 @@
   transform: translateX(-50%) translateY(12px);
   background: #1f2329;
   color: #fff;
-  font-size: 13px;
+  font-size: 16px;
   padding: 9px 17px;
   border-radius: 8px;
   opacity: 0;
@@ -676,6 +676,11 @@
 }
 
 @media (max-width: 860px) {
+  .lv-topbar { height: auto; min-height: 56px; flex-wrap: wrap; gap: 8px; padding-top: 8px; padding-bottom: 8px; }
+  .lv-topbar-search { min-width: 0; max-width: 100%; }
+  .lv-crumbs { min-width: 0; }
+  .lv-topbar-right { margin-left: 0; width: 100%; }
+  .lv-table-grid { grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr)); }
   .lv-graph-layout { flex-direction: column; height: auto; }
   .lv-detail-panel {
     flex: 0 0 46%;

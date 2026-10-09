@@ -48,6 +48,9 @@ public class LineageGraph {
     /** 表名 → 产出该表的所有 SQL 记录 */
     private final Map<String, List<LineageSqlRecord>> producers = new HashMap<String, List<LineageSqlRecord>>();
 
+    /** 表名 → 使用该表的 SQL，避免列表逐表扫描整个数据集。 */
+    private final Map<String, List<LineageSqlRecord>> consumers = new HashMap<String, List<LineageSqlRecord>>();
+
     /** 作业名 → SQL 记录，供边详情反查 */
     private final Map<String, LineageSqlRecord> sqlByName = new HashMap<String, LineageSqlRecord>();
 
@@ -134,7 +137,15 @@ public class LineageGraph {
             if (r.getName() != null) {
                 sqlByName.put(r.getName(), r);
             }
-            for (String out : r.getOutputTables()) {
+            for (String in : new LinkedHashSet<String>(r.getInputTables())) {
+                List<LineageSqlRecord> list = consumers.get(in);
+                if (list == null) {
+                    list = new ArrayList<LineageSqlRecord>();
+                    consumers.put(in, list);
+                }
+                list.add(r);
+            }
+            for (String out : new LinkedHashSet<String>(r.getOutputTables())) {
                 List<LineageSqlRecord> list = producers.get(out);
                 if (list == null) {
                     list = new ArrayList<LineageSqlRecord>();
@@ -325,14 +336,16 @@ public class LineageGraph {
         if (table == null) {
             return new ArrayList<LineageSqlRecord>();
         }
-        List<LineageSqlRecord> result = new ArrayList<LineageSqlRecord>();
-        for (LineageSqlRecord r : sqlByName.values()) {
-            if (r.getInputTables().contains(table)) {
-                result.add(r);
-            }
-        }
+        List<LineageSqlRecord> list = consumers.get(table);
+        List<LineageSqlRecord> result = list == null ? new ArrayList<LineageSqlRecord>()
+                : new ArrayList<LineageSqlRecord>(list);
         Collections.sort(result, SQL_NAME_ORDER);
         return result;
+    }
+
+    public int consumerCount(String table) {
+        List<LineageSqlRecord> list = consumers.get(table);
+        return list == null ? 0 : list.size();
     }
 
     public LineageSqlRecord sqlByName(String name) {
@@ -478,9 +491,11 @@ public class LineageGraph {
 
         // 收集两端都在集合内的边
         List<LineageEdge> subEdges = new ArrayList<LineageEdge>();
-        for (LineageEdge e : edges.values()) {
-            if (included.contains(e.getFrom()) && included.contains(e.getTo())) {
-                subEdges.add(e);
+        for (String from : included) {
+            List<LineageEdge> adjacent = outgoing.get(from);
+            if (adjacent == null) continue;
+            for (LineageEdge e : adjacent) {
+                if (included.contains(e.getTo())) subEdges.add(e);
             }
         }
 
