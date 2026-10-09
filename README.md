@@ -4,8 +4,22 @@
 
 ## 功能
 
-### 首页系统信息
-打开首页即展示本机硬件参数：操作系统、CPU 型号与核心数、内存使用、磁盘分区、所有网卡 IPv4 地址（点击可复制）。
+### 按任务使用
+首页提供六个常用任务：JSON 工作台、文本对比、实体生成、SQL 结构分析、SQL 指标探查、时间转换。单条/批量和输入来源在任务内切换，切换保留当前会话输入。数据库代码生成和网络诊断位于“高级工具”，服务端硬件/JVM/IP 信息位于“环境信息”。
+
+每项操作可展开“API 调用与参数说明”，查看参数、必填条件、默认值、JSON 请求体和可复制的 curl 示例。实体源码可直接复制或下载；API 原始响应可展开查看。
+
+### 通过 API 获取帮助
+
+```sh
+curl http://localhost:8088/api/help
+curl http://localhost:8088/api/tools/json-to-java/help
+curl -X POST http://localhost:8088/api/tools/json-to-java/execute \
+  -H 'Content-Type: application/json' \
+  --data-binary '{"input":"{\"user_id\":1,\"name\":\"张三\"}","className":"User","mode":"normal"}'
+```
+
+`GET /api/help` 返回完整 HTTP 能力说明和独立任务清单；`GET /api/tools/{name}/help` 返回单项说明，未知名称返回 HTTP 404。原 `GET /api/tools` 和执行接口保持兼容。详情见 [API 帮助说明](docs/api-help.md)。下表是能力清单，能力不会自动产生独立菜单。
 
 ### 工具列表
 

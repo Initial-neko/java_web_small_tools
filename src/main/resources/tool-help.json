@@ -1,0 +1,1370 @@
+{
+  "schemaVersion": "1.0",
+  "description": "任务页面与 HTTP 能力独立维护。参数通过 JSON 请求体传递，Excel 文件通过 multipart 上传；Java 内部辅助类和桌面功能不生成 Web 菜单。",
+  "helpEndpoints": [
+    "GET /api/help",
+    "GET /api/tools/{name}/help",
+    "GET /api/tools"
+  ],
+  "responseContract": "通用 execute 返回 {success,message,data}；业务失败可能仍是 HTTP 200，必须检查 success。Excel 接口返回扁平对象，其 output/fileId/rows 不在 data 下。帮助接口成功直接返回文档对象，未知工具帮助返回 HTTP 404。",
+  "pages": [
+    {
+      "id": "json",
+      "title": "JSON 工作台",
+      "description": "格式化、压缩、校验与结构化对比",
+      "tools": [
+        "json-format",
+        "json-compare"
+      ],
+      "labels": [
+        "格式与校验",
+        "结构化对比"
+      ]
+    },
+    {
+      "id": "text",
+      "title": "文本对比",
+      "description": "按行查看文本增删和修改",
+      "tools": [
+        "text-diff"
+      ],
+      "labels": [
+        "按行对比"
+      ]
+    },
+    {
+      "id": "entity",
+      "title": "实体生成",
+      "description": "从 JSON、DDL 或 Excel 生成 Java 源码",
+      "tools": [
+        "json-to-java",
+        "ddl-to-java",
+        "excel-viewer",
+        "jdbc-query-to-java"
+      ],
+      "labels": [
+        "JSON",
+        "DDL",
+        "Excel",
+        "数据库查询（高级）"
+      ]
+    },
+    {
+      "id": "sql",
+      "title": "SQL 结构分析",
+      "description": "提取语句、读写表和字段；支持批量",
+      "tools": [
+        "dm-sql-analyze",
+        "dm-sql-batch"
+      ],
+      "labels": [
+        "单条 SQL",
+        "批量 SQL"
+      ]
+    },
+    {
+      "id": "metric",
+      "title": "SQL 指标探查",
+      "description": "提取指标、维度及跨 SQL 重复计算",
+      "tools": [
+        "sql-metric-probe",
+        "sql-metric-batch"
+      ],
+      "labels": [
+        "单条 SQL",
+        "批量 SQL"
+      ]
+    },
+    {
+      "id": "time",
+      "title": "时间转换",
+      "description": "时间戳与日期互转，支持秒和毫秒",
+      "tools": [
+        "timestamp"
+      ],
+      "labels": [
+        "时间转换"
+      ]
+    }
+  ],
+  "advancedPages": [
+    {
+      "id": "mybatis",
+      "title": "数据库代码生成",
+      "description": "生成 Model、Mapper 和 XML，并写入服务端目录",
+      "tools": [
+        "mybatis-generator"
+      ],
+      "labels": [
+        "代码生成"
+      ]
+    },
+    {
+      "id": "network",
+      "title": "网络诊断",
+      "description": "从服务端检测目标端口连通性",
+      "tools": [
+        "ip-port-checker"
+      ],
+      "labels": [
+        "端口检测"
+      ]
+    }
+  ],
+  "environment": {
+    "id": "environment",
+    "title": "环境信息",
+    "description": "查看运行此服务的机器及 JVM 信息",
+    "tools": [
+      "system-info"
+    ],
+    "labels": [
+      "服务端环境"
+    ]
+  },
+  "tools": [
+    {
+      "name": "timestamp",
+      "title": "时间转换",
+      "category": "time",
+      "summary": "时间戳与日期互转，支持秒和毫秒",
+      "notes": [
+        "timestamp 按传入文本长度自动识别：不超过 10 位按秒，否则按毫秒。timestamp 在 type=toDate 时必填，datetime 在 type=toTimestamp 时必填。",
+        "不填 timezone 使用服务端默认时区；建议明确使用 Asia/Shanghai。"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/api/tools/timestamp/execute",
+          "contentType": "application/json",
+          "parameters": [
+            {
+              "name": "type",
+              "in": "body",
+              "type": "string",
+              "required": false,
+              "default": "now",
+              "enum": [
+                "now",
+                "toDate",
+                "toTimestamp"
+              ],
+              "description": "操作类型"
+            },
+            {
+              "name": "timestamp",
+              "in": "body",
+              "type": "string",
+              "required": false,
+              "default": null,
+              "enum": [],
+              "description": "时间戳（秒或毫秒）；type=toDate 时必填"
+            },
+            {
+              "name": "datetime",
+              "in": "body",
+              "type": "string",
+              "required": false,
+              "default": null,
+              "enum": [],
+              "description": "日期时间；type=toTimestamp 时必填"
+            },
+            {
+              "name": "format",
+              "in": "body",
+              "type": "string",
+              "required": false,
+              "default": "yyyy-MM-dd HH:mm:ss",
+              "enum": [],
+              "description": "日期格式"
+            },
+            {
+              "name": "timezone",
+              "in": "body",
+              "type": "string",
+              "required": false,
+              "default": null,
+              "enum": [],
+              "description": "时区（可选）"
+            }
+          ],
+          "examples": [
+            {
+              "title": "now",
+              "body": {
+                "type": "now",
+                "timezone": "Asia/Shanghai"
+              }
+            },
+            {
+              "title": "toDate",
+              "body": {
+                "type": "toDate",
+                "timestamp": "1704067200",
+                "timezone": "Asia/Shanghai"
+              }
+            },
+            {
+              "title": "toTimestamp",
+              "body": {
+                "type": "toTimestamp",
+                "datetime": "2024-01-01 08:00:00",
+                "timezone": "Asia/Shanghai"
+              }
+            }
+          ],
+          "testable": true,
+          "response": "data.timestampSec、data.timestampMs、data.datetime"
+        }
+      ]
+    },
+    {
+      "name": "json-format",
+      "title": "格式与校验",
+      "category": "json",
+      "summary": "格式化、压缩、校验与结构化对比",
+      "notes": [
+        "input 是字符串，即使内容是 JSON，也需放在外层请求体的字符串字段中。validate 的格式正确性看 data.valid，格式错误也可能 success=true。"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/api/tools/json-format/execute",
+          "contentType": "application/json",
+          "parameters": [
+            {
+              "name": "action",
+              "in": "body",
+              "type": "string",
+              "required": false,
+              "default": "format",
+              "enum": [
+                "format",
+                "compress",
+                "validate",
+                "escape",
+                "unescape"
+              ],
+              "description": "操作"
+            },
+            {
+              "name": "input",
+              "in": "body",
+              "type": "string",
+              "required": true,
+              "default": null,
+              "enum": [],
+              "description": "输入内容"
+            }
+          ],
+          "examples": [
+            {
+              "title": "format",
+              "body": {
+                "action": "format",
+                "input": "{\"name\":\"张三\",\"active\":true}"
+              }
+            },
+            {
+              "title": "compress",
+              "body": {
+                "action": "compress",
+                "input": "{\"name\":\"张三\",\"active\":true}"
+              }
+            },
+            {
+              "title": "validate",
+              "body": {
+                "action": "validate",
+                "input": "{\"name\":\"张三\",\"active\":true}"
+              }
+            },
+            {
+              "title": "escape",
+              "body": {
+                "action": "escape",
+                "input": "{\"name\":\"张三\",\"active\":true}"
+              }
+            },
+            {
+              "title": "unescape",
+              "body": {
+                "action": "unescape",
+                "input": "{\\\"name\\\":\\\"张三\\\"}"
+              }
+            }
+          ],
+          "testable": true,
+          "response": "data.output；校验模式额外返回 data.valid"
+        }
+      ]
+    },
+    {
+      "name": "json-to-java",
+      "title": "JSON",
+      "category": "entity",
+      "summary": "从 JSON、DDL 或 Excel 生成 Java 源码",
+      "notes": [
+        "mode=mapping 输出显式取值代码，不生成普通实体。JSON 样本和 Java 内部推断类不各建独立菜单。"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/api/tools/json-to-java/execute",
+          "contentType": "application/json",
+          "parameters": [
+            {
+              "name": "mode",
+              "in": "body",
+              "type": "string",
+              "required": false,
+              "default": "normal",
+              "enum": [
+                "normal",
+                "lombok",
+                "mapping"
+              ],
+              "description": "输出模式"
+            },
+            {
+              "name": "className",
+              "in": "body",
+              "type": "string",
+              "required": false,
+              "default": "GeneratedEntity",
+              "enum": [],
+              "description": "类名"
+            },
+            {
+              "name": "packageName",
+              "in": "body",
+              "type": "string",
+              "required": false,
+              "default": "com.example.model",
+              "enum": [],
+              "description": "包名"
+            },
+            {
+              "name": "input",
+              "in": "body",
+              "type": "string",
+              "required": true,
+              "default": null,
+              "enum": [],
+              "description": "JSON 样本"
+            }
+          ],
+          "examples": [
+            {
+              "title": "调用示例 1",
+              "body": {
+                "input": "{\"user_id\":1,\"name\":\"张三\",\"orders\":[{\"id\":2}]}",
+                "className": "User",
+                "packageName": "com.example.model",
+                "mode": "normal"
+              }
+            }
+          ],
+          "testable": true,
+          "response": "data.output 为 Java 源码；data.className/packageName/fieldCount/mode"
+        }
+      ]
+    },
+    {
+      "name": "ddl-to-java",
+      "title": "DDL",
+      "category": "entity",
+      "summary": "从 JSON、DDL 或 Excel 生成 Java 源码",
+      "notes": [
+        "只解析 DDL，不连接数据库。"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/api/tools/ddl-to-java/execute",
+          "contentType": "application/json",
+          "parameters": [
+            {
+              "name": "databaseType",
+              "in": "body",
+              "type": "string",
+              "required": false,
+              "default": "dm",
+              "enum": [
+                "dm",
+                "oracle"
+              ],
+              "description": "DDL 方言"
+            },
+            {
+              "name": "mode",
+              "in": "body",
+              "type": "string",
+              "required": false,
+              "default": "normal",
+              "enum": [
+                "normal",
+                "lombok"
+              ],
+              "description": "输出模式"
+            },
+            {
+              "name": "className",
+              "in": "body",
+              "type": "string",
+              "required": false,
+              "default": null,
+              "enum": [],
+              "description": "类名（留空则按表名生成）"
+            },
+            {
+              "name": "packageName",
+              "in": "body",
+              "type": "string",
+              "required": false,
+              "default": "com.example.model",
+              "enum": [],
+              "description": "包名"
+            },
+            {
+              "name": "ddl",
+              "in": "body",
+              "type": "string",
+              "required": true,
+              "default": null,
+              "enum": [],
+              "description": "CREATE TABLE DDL"
+            }
+          ],
+          "examples": [
+            {
+              "title": "调用示例 1",
+              "body": {
+                "ddl": "CREATE TABLE APP.T_ORDER (ID NUMBER(10,0), NAME VARCHAR2(100))",
+                "databaseType": "dm",
+                "className": "Order",
+                "packageName": "com.example.model",
+                "mode": "normal"
+              }
+            }
+          ],
+          "testable": true,
+          "response": "data.output 为 Java 源码；data.className/packageName/fieldCount/databaseType"
+        }
+      ]
+    },
+    {
+      "name": "jdbc-query-to-java",
+      "title": "数据库查询（高级）",
+      "category": "entity",
+      "summary": "从 JSON、DDL 或 Excel 生成 Java 源码",
+      "notes": [
+        "由服务端连接真实数据库并执行 SELECT/WITH。驱动 jar 路径相对服务端工作目录，DM/Oracle 驱动需在内网自行提供。",
+        "driverJars 支持字符串（逗号/分号/换行分隔）或字符串数组。custom 类型必须提供 driverClass；dm/oracle 自动推断。示例中的账号和地址必须替换。"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/api/tools/jdbc-query-to-java/execute",
+          "contentType": "application/json",
+          "parameters": [
+            {
+              "name": "databaseType",
+              "in": "body",
+              "type": "string",
+              "required": false,
+              "default": "dm",
+              "enum": [
+                "dm",
+                "oracle",
+                "custom"
+              ],
+              "description": "数据库类型"
+            },
+            {
+              "name": "driverJars",
+              "in": "body",
+              "type": "string | string[]",
+              "required": false,
+              "default": null,
+              "enum": [],
+              "description": "JDBC Driver Jar 路径；服务端路径，支持字符串或数组"
+            },
+            {
+              "name": "driverClass",
+              "in": "body",
+              "type": "string",
+              "required": false,
+              "default": null,
+              "enum": [],
+              "description": "Driver Class（自定义数据库）；databaseType=custom 时必填"
+            },
+            {
+              "name": "jdbcUrl",
+              "in": "body",
+              "type": "string",
+              "required": true,
+              "default": null,
+              "enum": [],
+              "description": "JDBC URL"
+            },
+            {
+              "name": "username",
+              "in": "body",
+              "type": "string",
+              "required": true,
+              "default": null,
+              "enum": [],
+              "description": "用户名"
+            },
+            {
+              "name": "password",
+              "in": "body",
+              "type": "string",
+              "required": false,
+              "default": null,
+              "enum": [],
+              "description": "密码"
+            },
+            {
+              "name": "sql",
+              "in": "body",
+              "type": "string",
+              "required": true,
+              "default": null,
+              "enum": [],
+              "description": "SELECT / WITH 查询"
+            },
+            {
+              "name": "className",
+              "in": "body",
+              "type": "string",
+              "required": false,
+              "default": "QueryResult",
+              "enum": [],
+              "description": "类名"
+            },
+            {
+              "name": "packageName",
+              "in": "body",
+              "type": "string",
+              "required": false,
+              "default": "com.example.model",
+              "enum": [],
+              "description": "包名"
+            },
+            {
+              "name": "mode",
+              "in": "body",
+              "type": "string",
+              "required": false,
+              "default": "normal",
+              "enum": [
+                "normal",
+                "lombok"
+              ],
+              "description": "输出模式"
+            }
+          ],
+          "examples": [
+            {
+              "title": "调用示例 1",
+              "body": {
+                "databaseType": "dm",
+                "driverJars": "drivers/DmJdbcDriver8.jar",
+                "jdbcUrl": "jdbc:dm://127.0.0.1:5236",
+                "username": "YOUR_USER",
+                "password": "YOUR_PASSWORD",
+                "sql": "SELECT ID, NAME FROM APP.T_ORDER",
+                "className": "QueryResult",
+                "packageName": "com.example.model",
+                "mode": "normal"
+              }
+            }
+          ],
+          "testable": false,
+          "response": "data.output 为 Java 源码，data.fields 为字段元数据"
+        }
+      ]
+    },
+    {
+      "name": "text-diff",
+      "title": "按行对比",
+      "category": "text",
+      "summary": "按行查看文本增删和修改",
+      "notes": [],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/api/tools/text-diff/execute",
+          "contentType": "application/json",
+          "parameters": [
+            {
+              "name": "textA",
+              "in": "body",
+              "type": "string",
+              "required": false,
+              "default": null,
+              "enum": [],
+              "description": "原始文本（A）"
+            },
+            {
+              "name": "textB",
+              "in": "body",
+              "type": "string",
+              "required": false,
+              "default": null,
+              "enum": [],
+              "description": "对比文本（B）"
+            },
+            {
+              "name": "ignoreWhitespace",
+              "in": "body",
+              "type": "boolean",
+              "required": false,
+              "default": false,
+              "enum": [],
+              "description": "忽略行首尾空白"
+            }
+          ],
+          "examples": [
+            {
+              "title": "调用示例 1",
+              "body": {
+                "textA": "第一行\n旧内容",
+                "textB": "第一行\n新内容",
+                "ignoreWhitespace": false
+              }
+            }
+          ],
+          "testable": true,
+          "response": "data.identical、data.changeCount、data.deltas、data.unifiedDiff"
+        }
+      ]
+    },
+    {
+      "name": "json-compare",
+      "title": "结构化对比",
+      "category": "json",
+      "summary": "格式化、压缩、校验与结构化对比",
+      "notes": [
+        "jsonA/jsonB 都是 JSON 文本字符串；按结构及值比较，不是逐行比较。"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/api/tools/json-compare/execute",
+          "contentType": "application/json",
+          "parameters": [
+            {
+              "name": "jsonA",
+              "in": "body",
+              "type": "string",
+              "required": true,
+              "default": null,
+              "enum": [],
+              "description": "JSON A"
+            },
+            {
+              "name": "jsonB",
+              "in": "body",
+              "type": "string",
+              "required": true,
+              "default": null,
+              "enum": [],
+              "description": "JSON B"
+            }
+          ],
+          "examples": [
+            {
+              "title": "调用示例 1",
+              "body": {
+                "jsonA": "{\"id\":1}",
+                "jsonB": "{\"id\":2}"
+              }
+            }
+          ],
+          "testable": true,
+          "response": "data.identical、data.diffCount、data.differences"
+        }
+      ]
+    },
+    {
+      "name": "ip-port-checker",
+      "title": "端口检测",
+      "category": "network",
+      "summary": "从服务端检测目标端口连通性",
+      "notes": [
+        "检测方向为服务端到目标，不代表使用浏览器的电脑可连通。一次最多 1000 个端口。"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/api/tools/ip-port-checker/execute",
+          "contentType": "application/json",
+          "parameters": [
+            {
+              "name": "ip",
+              "in": "body",
+              "type": "string",
+              "required": true,
+              "default": null,
+              "enum": [],
+              "description": "IP 地址或域名"
+            },
+            {
+              "name": "ports",
+              "in": "body",
+              "type": "string",
+              "required": true,
+              "default": null,
+              "enum": [],
+              "description": "端口（支持 80,443,8000-9000 混合）"
+            },
+            {
+              "name": "timeout",
+              "in": "body",
+              "type": "integer",
+              "required": false,
+              "default": "3000",
+              "enum": [],
+              "description": "超时时间（毫秒）"
+            }
+          ],
+          "examples": [
+            {
+              "title": "调用示例 1",
+              "body": {
+                "ip": "127.0.0.1",
+                "ports": "8088",
+                "timeout": 300
+              }
+            }
+          ],
+          "testable": false,
+          "response": "data.results/openCount/closedCount/totalCount"
+        }
+      ]
+    },
+    {
+      "name": "dm-sql-analyze",
+      "title": "单条 SQL",
+      "category": "sql",
+      "summary": "提取语句、读写表和字段；支持批量",
+      "notes": [
+        "仅静态解析，不执行 SQL。检查 data.status、warnings、errors；success=true 不等于全部 SQL 都成功解析。"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/api/tools/dm-sql-analyze/execute",
+          "contentType": "application/json",
+          "parameters": [
+            {
+              "name": "sqlId",
+              "in": "body",
+              "type": "string",
+              "required": false,
+              "default": "manual",
+              "enum": [],
+              "description": "SQL ID"
+            },
+            {
+              "name": "source",
+              "in": "body",
+              "type": "string",
+              "required": false,
+              "default": "toolbox",
+              "enum": [],
+              "description": "来源（可选）"
+            },
+            {
+              "name": "sql",
+              "in": "body",
+              "type": "string",
+              "required": true,
+              "default": null,
+              "enum": [],
+              "description": "达梦 SQL"
+            }
+          ],
+          "examples": [
+            {
+              "title": "调用示例 1",
+              "body": {
+                "sqlId": "sql-1",
+                "source": "demo",
+                "sql": "SELECT ID, NAME FROM APP.T_ORDER WHERE STATUS = 1"
+              }
+            }
+          ],
+          "testable": true,
+          "response": "data.status/statementTypes/readTables/writeTables/columns/warnings/errors"
+        }
+      ]
+    },
+    {
+      "name": "dm-sql-batch",
+      "title": "批量 SQL",
+      "category": "sql",
+      "summary": "提取语句、读写表和字段；支持批量",
+      "notes": [
+        "input 为字符串：内容可为 JSON 数组（string/object 元素），或用独立一行 -- @SQL 分隔 SQL 文本。",
+        "对象支持 sqlId/sql/source/fileName/metadata；metadata 为键值对象，值转换为字符串。逐项状态见 data.results，总体 success=true 不代表所有条目解析成功。"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/api/tools/dm-sql-batch/execute",
+          "contentType": "application/json",
+          "parameters": [
+            {
+              "name": "input",
+              "in": "body",
+              "type": "string",
+              "required": true,
+              "default": null,
+              "enum": [],
+              "description": "批量 SQL"
+            }
+          ],
+          "examples": [
+            {
+              "title": "调用示例 1",
+              "body": {
+                "input": "[{\"sqlId\":\"sql-1\",\"source\":\"demo\",\"sql\":\"SELECT ID FROM APP.T_ORDER\"},{\"sqlId\":\"sql-2\",\"sql\":\"INSERT INTO APP.T_RESULT SELECT ID FROM APP.T_ORDER\"}]"
+              }
+            }
+          ],
+          "testable": true,
+          "response": "data.total/success/partial/failed/unsupported/results/readTables/writeTables/tableLineageEdges"
+        }
+      ]
+    },
+    {
+      "name": "sql-metric-probe",
+      "title": "单条 SQL",
+      "category": "metric",
+      "summary": "提取指标、维度及跨 SQL 重复计算",
+      "notes": [
+        "仅静态提取候选指标，不执行 SQL；检查 data.status、warnings、errors。"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/api/tools/sql-metric-probe/execute",
+          "contentType": "application/json",
+          "parameters": [
+            {
+              "name": "sqlId",
+              "in": "body",
+              "type": "string",
+              "required": false,
+              "default": "manual",
+              "enum": [],
+              "description": "SQL ID"
+            },
+            {
+              "name": "source",
+              "in": "body",
+              "type": "string",
+              "required": false,
+              "default": "toolbox",
+              "enum": [],
+              "description": "来源（可选）"
+            },
+            {
+              "name": "sql",
+              "in": "body",
+              "type": "string",
+              "required": true,
+              "default": null,
+              "enum": [],
+              "description": "SELECT / WITH SQL"
+            }
+          ],
+          "examples": [
+            {
+              "title": "调用示例 1",
+              "body": {
+                "sqlId": "metric-1",
+                "source": "demo",
+                "sql": "SELECT DEPT_ID, SUM(AMOUNT) AS TOTAL_AMOUNT FROM APP.T_ORDER WHERE STATUS = 'DONE' GROUP BY DEPT_ID"
+              }
+            }
+          ],
+          "testable": true,
+          "response": "data.status/metrics/dimensions/sourceTables/warnings/errors"
+        }
+      ]
+    },
+    {
+      "name": "sql-metric-batch",
+      "title": "批量 SQL",
+      "category": "metric",
+      "summary": "提取指标、维度及跨 SQL 重复计算",
+      "notes": [
+        "input 为字符串：JSON 数组或独立一行 -- @SQL 分隔。对象支持 sqlId/sql/source/fileName/metadata。",
+        "data.results 含每项状态、指标、维度及错误；data.duplicateGroups 为跨 SQL 重复计算组。"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/api/tools/sql-metric-batch/execute",
+          "contentType": "application/json",
+          "parameters": [
+            {
+              "name": "input",
+              "in": "body",
+              "type": "string",
+              "required": true,
+              "default": null,
+              "enum": [],
+              "description": "批量 SQL"
+            }
+          ],
+          "examples": [
+            {
+              "title": "调用示例 1",
+              "body": {
+                "input": "[{\"sqlId\":\"metric-1\",\"sql\":\"SELECT SUM(AMOUNT) AS TOTAL_AMOUNT FROM APP.T_ORDER\"}]"
+              }
+            }
+          ],
+          "testable": true,
+          "response": "data.total/success/partial/failed/unsupported/metricCount/results/duplicateGroups"
+        }
+      ]
+    },
+    {
+      "name": "mybatis-generator",
+      "title": "代码生成",
+      "category": "mybatis",
+      "summary": "生成 Model、Mapper 和 XML，并写入服务端目录",
+      "notes": [
+        "从真实库表生成 Model/Mapper/XML；outputDir 是服务端写入目录，不是浏览器下载目录。",
+        "driverJars/tables 支持数组或逗号/分号/换行分隔的字符串；tables 支持 JDBC 通配符。schema 可选，注意数据库大小写。custom 类型须提供 driverClass。",
+        "driverJars 是服务端路径；DM/Oracle 驱动需自行提供，示例账号需替换。"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/api/tools/mybatis-generator/execute",
+          "contentType": "application/json",
+          "parameters": [
+            {
+              "name": "databaseType",
+              "in": "body",
+              "type": "string",
+              "required": false,
+              "default": "dm",
+              "enum": [
+                "dm",
+                "oracle",
+                "custom"
+              ],
+              "description": "数据库类型"
+            },
+            {
+              "name": "driverJars",
+              "in": "body",
+              "type": "string | string[]",
+              "required": false,
+              "default": null,
+              "enum": [],
+              "description": "JDBC Driver Jar 路径；服务端路径，支持字符串或数组"
+            },
+            {
+              "name": "driverClass",
+              "in": "body",
+              "type": "string",
+              "required": false,
+              "default": null,
+              "enum": [],
+              "description": "Driver Class（自定义数据库）；databaseType=custom 时必填"
+            },
+            {
+              "name": "jdbcUrl",
+              "in": "body",
+              "type": "string",
+              "required": true,
+              "default": null,
+              "enum": [],
+              "description": "JDBC URL"
+            },
+            {
+              "name": "username",
+              "in": "body",
+              "type": "string",
+              "required": true,
+              "default": null,
+              "enum": [],
+              "description": "用户名"
+            },
+            {
+              "name": "password",
+              "in": "body",
+              "type": "string",
+              "required": false,
+              "default": null,
+              "enum": [],
+              "description": "密码"
+            },
+            {
+              "name": "schema",
+              "in": "body",
+              "type": "string",
+              "required": false,
+              "default": null,
+              "enum": [],
+              "description": "Schema（可选）"
+            },
+            {
+              "name": "tables",
+              "in": "body",
+              "type": "string | string[]",
+              "required": true,
+              "default": null,
+              "enum": [],
+              "description": "表名；支持字符串或数组"
+            },
+            {
+              "name": "modelPackage",
+              "in": "body",
+              "type": "string",
+              "required": false,
+              "default": "com.example.model",
+              "enum": [],
+              "description": "Model 包名"
+            },
+            {
+              "name": "mapperPackage",
+              "in": "body",
+              "type": "string",
+              "required": false,
+              "default": "com.example.mapper",
+              "enum": [],
+              "description": "Mapper 包名"
+            },
+            {
+              "name": "xmlPackage",
+              "in": "body",
+              "type": "string",
+              "required": false,
+              "default": "mapper",
+              "enum": [],
+              "description": "Mapper XML 目录"
+            },
+            {
+              "name": "outputDir",
+              "in": "body",
+              "type": "string",
+              "required": false,
+              "default": "./generated/mybatis",
+              "enum": [],
+              "description": "输出目录"
+            },
+            {
+              "name": "overwrite",
+              "in": "body",
+              "type": "boolean",
+              "required": false,
+              "default": true,
+              "enum": [],
+              "description": "覆盖已生成文件"
+            },
+            {
+              "name": "addRemarkComments",
+              "in": "body",
+              "type": "boolean",
+              "required": false,
+              "default": true,
+              "enum": [],
+              "description": "生成数据库字段备注"
+            },
+            {
+              "name": "forceBigDecimals",
+              "in": "body",
+              "type": "boolean",
+              "required": false,
+              "default": false,
+              "enum": [],
+              "description": "DECIMAL/NUMERIC 强制使用 BigDecimal"
+            },
+            {
+              "name": "trimStrings",
+              "in": "body",
+              "type": "boolean",
+              "required": false,
+              "default": false,
+              "enum": [],
+              "description": "String setter 自动 trim"
+            },
+            {
+              "name": "useActualColumnNames",
+              "in": "body",
+              "type": "boolean",
+              "required": false,
+              "default": false,
+              "enum": [],
+              "description": "Java 属性直接使用数据库字段名"
+            }
+          ],
+          "examples": [
+            {
+              "title": "调用示例 1",
+              "body": {
+                "databaseType": "dm",
+                "driverJars": "drivers/DmJdbcDriver8.jar",
+                "jdbcUrl": "jdbc:dm://127.0.0.1:5236",
+                "username": "YOUR_USER",
+                "password": "YOUR_PASSWORD",
+                "tables": [
+                  "T_ORDER"
+                ],
+                "outputDir": "./generated/mybatis",
+                "modelPackage": "com.example.model",
+                "mapperPackage": "com.example.mapper",
+                "xmlPackage": "mapper",
+                "overwrite": true
+              }
+            }
+          ],
+          "testable": false,
+          "response": "data 中返回生成文件和运行信息；源文件写入服务端 outputDir"
+        }
+      ]
+    },
+    {
+      "name": "excel-viewer",
+      "title": "Excel 导入与实体生成",
+      "category": "entity",
+      "summary": "上传、字段预览、Java 实体生成和清理",
+      "notes": [
+        "不要使用通用 execute：Excel 使用下列专用接口。上传返回 fileId，将后续路径中的 {fileId} 替换为此值。",
+        "文件仅保存在服务内存，会在上传后 1 小时过期，服务重启也会失效。支持 .xls/.xlsx，最大 50MB。",
+        "sheetIndex 从 0 开始；实体配置行号从 1 开始，typeRow/commentRow=0 表示不使用。"
+      ],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/api/excel/upload",
+          "contentType": "multipart/form-data",
+          "parameters": [
+            {
+              "name": "file",
+              "in": "multipart",
+              "type": "file",
+              "required": true,
+              "default": null,
+              "enum": [],
+              "description": ".xls/.xlsx 文件"
+            }
+          ],
+          "examples": [
+            {
+              "title": "上传并取得 fileId",
+              "file": "schema.xlsx"
+            }
+          ],
+          "response": "扁平对象：success/fileId/fileName/sheets；失败为 success=false/message"
+        },
+        {
+          "method": "GET",
+          "path": "/api/excel/{fileId}/sheet/{sheetIndex}",
+          "contentType": null,
+          "parameters": [
+            {
+              "name": "fileId",
+              "in": "path",
+              "type": "string",
+              "required": true,
+              "default": null,
+              "enum": [],
+              "description": "上传返回的 fileId"
+            },
+            {
+              "name": "sheetIndex",
+              "in": "path",
+              "type": "integer",
+              "required": true,
+              "default": null,
+              "enum": [],
+              "description": "工作表索引，从 0 开始"
+            },
+            {
+              "name": "page",
+              "in": "query",
+              "type": "integer",
+              "required": false,
+              "default": 1,
+              "enum": [],
+              "description": "页号，从 1 开始"
+            },
+            {
+              "name": "size",
+              "in": "query",
+              "type": "integer",
+              "required": false,
+              "default": 100,
+              "enum": [],
+              "description": "每页行数，必须使用正整数"
+            }
+          ],
+          "examples": [
+            {
+              "title": "预览第一个工作表",
+              "query": {
+                "page": 1,
+                "size": 100
+              }
+            }
+          ],
+          "response": "扁平对象：success/rows/mergedRegions/columnWidths/totalRows/page/totalPages"
+        },
+        {
+          "method": "POST",
+          "path": "/api/excel/{fileId}/entity",
+          "contentType": "application/json",
+          "parameters": [
+            {
+              "name": "fileId",
+              "in": "path",
+              "type": "string",
+              "required": true,
+              "default": null,
+              "enum": [],
+              "description": "上传返回的 fileId"
+            },
+            {
+              "name": "sheetIndex",
+              "in": "body",
+              "type": "integer",
+              "required": false,
+              "default": 0,
+              "enum": [],
+              "description": "工作表索引"
+            },
+            {
+              "name": "className",
+              "in": "body",
+              "type": "string",
+              "required": false,
+              "default": "工作表名称",
+              "enum": [],
+              "description": "生成类名"
+            },
+            {
+              "name": "packageName",
+              "in": "body",
+              "type": "string",
+              "required": false,
+              "default": "com.example.model",
+              "enum": [],
+              "description": "包名"
+            },
+            {
+              "name": "mode",
+              "in": "body",
+              "type": "string",
+              "required": false,
+              "default": "normal",
+              "enum": [
+                "normal",
+                "lombok"
+              ],
+              "description": "输出模式"
+            },
+            {
+              "name": "headerRow",
+              "in": "body",
+              "type": "integer",
+              "required": false,
+              "default": 1,
+              "enum": [],
+              "description": "字段名行"
+            },
+            {
+              "name": "typeRow",
+              "in": "body",
+              "type": "integer",
+              "required": false,
+              "default": 2,
+              "enum": [],
+              "description": "类型行，0 为不使用"
+            },
+            {
+              "name": "commentRow",
+              "in": "body",
+              "type": "integer",
+              "required": false,
+              "default": 3,
+              "enum": [],
+              "description": "注释行，0 为不使用"
+            }
+          ],
+          "examples": [
+            {
+              "title": "生成 Java 源码",
+              "body": {
+                "sheetIndex": 0,
+                "className": "User",
+                "packageName": "com.example.model",
+                "mode": "normal",
+                "headerRow": 1,
+                "typeRow": 2,
+                "commentRow": 3
+              }
+            }
+          ],
+          "response": "扁平对象：success/output/fields/fieldCount/className/packageName"
+        },
+        {
+          "method": "DELETE",
+          "path": "/api/excel/{fileId}",
+          "contentType": null,
+          "parameters": [
+            {
+              "name": "fileId",
+              "in": "path",
+              "type": "string",
+              "required": true,
+              "default": null,
+              "enum": [],
+              "description": "需清理的 fileId"
+            }
+          ],
+          "examples": [
+            {
+              "title": "清理已上传文件"
+            }
+          ],
+          "response": "扁平对象：success/message"
+        }
+      ]
+    },
+    {
+      "name": "system-info",
+      "title": "服务端环境信息",
+      "category": "environment",
+      "summary": "服务端 OS、JVM、IP 和资源信息",
+      "notes": [
+        "这是运行服务的机器信息，不是浏览器所在电脑。桌面剪切板/截图/热键没有对应的 Web API。"
+      ],
+      "endpoints": [
+        {
+          "method": "GET",
+          "path": "/api/system/info",
+          "contentType": null,
+          "parameters": [],
+          "examples": [
+            {
+              "title": "读取服务端信息"
+            }
+          ],
+          "response": "直接返回 os/java/ips/cpu/memory/disks 等信息，无 success/data 包装"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+body { font-size:16px; line-height:1.55; overflow:hidden; }
+.sidebar { width:240px; height:100vh; overflow-y:auto; }
+.sidebar h1 { font-size:24px; }
+.tool-item { display:block; width:100%; text-align:left; border:0; color:inherit; background:transparent; font:inherit; font-size:18px; padding:12px 20px; }
+.nav-label { color:#b8c9db; padding:16px 20px 6px; font-size:16px; }
+.nav-advanced { border-top:1px solid #536779; margin-top:16px; }
+.nav-advanced summary { padding:12px 20px; cursor:pointer; font-size:18px; }
+.main { min-width:0; padding:28px 36px; }
+.main h2 { font-size:28px; }
+.main .subtitle { font-size:16px; color:#526577; margin-bottom:20px; }
+.task-search { padding:12px 16px; font:inherit; border:1px solid #adbdce; border-radius:6px; width:100%; margin-bottom:24px; }
+.task-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
+.task-card { text-align:left; padding:24px; border:1px solid #ccd7e3; background:#fff; border-radius:8px; cursor:pointer; color:inherit; font:inherit; }
+.task-card strong { display:block; font-size:22px; margin-bottom:8px; }
+.task-card span { color:#526577; }
+.task-card:hover { border-color:#247caf; box-shadow:0 2px 8px #234c7018; }
+[hidden] { display:none !important; }
+.home-note { margin:24px 0 14px; }
+.task-tabs { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:22px; }
+.mode-tab { background:#fff; color:#34495e; border:1px solid #bdc3c7; border-radius:5px; padding:9px 16px; font:inherit; cursor:pointer; }
+.mode-tab.active { border-color:#247caf; background:#247caf; color:white; }
+.form-group label,.form-group input[type=text],.form-group input[type=password],.form-group select,.form-group textarea,.btn,.btn-sm { font-size:16px; }
+.form-group textarea { min-height:160px; }
+.btn { background:#247caf; }
+.result-box { font-size:16px; line-height:1.6; color:#223547; max-height:520px; white-space:pre-wrap; overflow-wrap:anywhere; }
+.result h3 { margin:18px 0 10px; }
+.source-output { background:#f9fbfd; }
+.result-actions { display:flex; gap:10px; margin:12px 0; }
+.api-help,.raw-details,.advanced-form,.batch-item { background:#fff; border:1px solid #ccd7e3; border-radius:6px; padding:14px 18px; margin:20px 0; }
+summary { cursor:pointer; font-weight:600; }
+.api-help summary { font-size:18px; }
+.api-help p,.api-help h3,.api-help h4 { margin:12px 0; }
+.api-endpoint { border-top:1px solid #d6dfe8; margin-top:20px; padding-top:12px; }
+.api-endpoint h3 { font:600 17px Consolas,monospace; overflow-wrap:anywhere; }
+.table-scroll { overflow-x:auto; margin:14px 0; }
+.api-table { width:100%; border-collapse:collapse; font-size:16px; }
+.api-table td,.api-table th { text-align:left; vertical-align:top; padding:10px 12px; border:1px solid #d6dfe8; }
+.api-table th { background:#edf3f8; }
+.api-note,.server-note { background:#edf3f8; padding:12px; border-left:3px solid #247caf; margin-bottom:16px; }
+.analysis-section { margin:18px 0; }
+.analysis-section h3 { font-size:18px; }
+.example-code .btn { margin-bottom:8px; }
+.sys-card h4,.sys-card .row,.diff-table,.diff-tag,.port-item,.port-item .port-status,.port-summary,.local-ips,.upload-area .text,.upload-area .hint,.sheet-tab,.excel-toolbar,.excel-table,.excel-pagination,.excel-pagination button { font-size:16px; }
+a { color:#17648f; }
+button:focus-visible,summary:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible { outline:3px solid #66b5e4; outline-offset:2px; }
+@media(max-width:900px) { .sidebar { width:190px; } .main { padding:22px; } .task-grid { grid-template-columns:1fr; } }
+@media(max-width:600px) { .sidebar { width:155px; } .tool-item,.nav-advanced summary { font-size:16px; padding:10px 12px; } .main { padding:16px; } .main h2 { font-size:24px; } }

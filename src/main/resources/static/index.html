@@ -104,6 +104,7 @@
   .excel-pagination button:hover:not(:disabled) { background: #ecf0f1; }
   .excel-pagination .page-info { color: #7f8c8d; }
 </style>
+<link rel="stylesheet" href="/task-ui.css">
 </head>
 <body>
 <div class="app">
@@ -113,9 +114,7 @@
   </div>
   <div class="main" id="main">
     <div id="homePage">
-      <h2>系统信息</h2>
-      <div class="subtitle">本机硬件参数与网络信息（点击左侧标题可返回）</div>
-      <div id="systemInfo"><div style="color:#95a5a6;">加载中...</div></div>
+      <h2>工具集</h2><p>正在加载任务与 API 帮助…</p>
     </div>
   </div>
 </div>
@@ -234,14 +233,14 @@ const TOOL_CONFIGS = {
 
 let currentTool = null, tools = [], systemInfo = null;
 
-fetch('/api/tools').then(r => r.json()).then(data => { tools = data; renderToolList(); });
-loadSystemInfo();
+
 
 function loadSystemInfo() {
   fetch('/api/system/info').then(r => r.json()).then(data => {
-    systemInfo = data; renderSystemInfo(data);
+    systemInfo = data; if(document.getElementById('systemInfo')) renderSystemInfo(data);
   }).catch(e => {
-    document.getElementById('systemInfo').innerHTML = '<div style="color:#e74c3c;">加载失败: ' + e.message + '</div>';
+    const box=document.getElementById('systemInfo');
+    if(box) box.innerHTML = '<div style="color:#e74c3c;">加载失败: ' + escapeHtml(e.message) + '</div>';
   });
 }
 
@@ -264,7 +263,7 @@ function renderSystemInfo(data) {
         '<div class="row"><span class="label">系统</span><span class="value">' + escapeHtml(data.os) + '</span></div>' +
         '<div class="row"><span class="label">JVM</span><span class="value">' + escapeHtml(data.jvm) + '</span></div></div>' +
       '<div class="sys-card"><h4>CPU</h4>' +
-        '<div class="row"><span class="label">型号</span><span class="value" style="font-size:12px;">' + escapeHtml(data.cpu.name) + '</span></div>' +
+        '<div class="row"><span class="label">型号</span><span class="value" style="font-size:16px;">' + escapeHtml(data.cpu.name) + '</span></div>' +
         '<div class="row"><span class="label">逻辑核心</span><span class="value">' + data.cpu.logicalCores + '</span></div></div>' +
       '<div class="sys-card"><h4>内存</h4>' +
         '<div class="row"><span class="label">已用/总量</span><span class="value">' + data.memory.usedMB + ' / ' + data.memory.totalMB + ' MB</span></div>' +
@@ -276,142 +275,14 @@ function renderSystemInfo(data) {
     '<div class="sys-card" style="margin-bottom:20px;"><h4>磁盘</h4>' + disksHtml + '</div>';
 }
 
-function copyText(text) { navigator.clipboard.writeText(text).catch(() => {}); }
-
-function goHome() {
-  currentTool = null;
-  document.querySelectorAll('.tool-item').forEach(el => el.classList.remove('active'));
-  document.getElementById('main').innerHTML =
-    '<div id="homePage"><h2>系统信息</h2>' +
-    '<div class="subtitle">本机硬件参数与网络信息（点击左侧标题可返回）</div>' +
-    '<div id="systemInfo">' + (systemInfo ? '' : '<div style="color:#95a5a6;">加载中...</div>') + '</div></div>';
-  if (systemInfo) renderSystemInfo(systemInfo); else loadSystemInfo();
-}
-
-function renderToolList() {
-  document.getElementById('toolList').innerHTML = tools.map(t =>
-    '<div class="tool-item" data-name="' + t.name + '" onclick="selectTool(\'' + t.name + '\')">' +
-      t.displayName + '<div class="desc">' + t.description + '</div></div>'
-  ).join('');
-}
-
-function selectTool(name) {
-  currentTool = tools.find(t => t.name === name);
-  document.querySelectorAll('.tool-item').forEach(el => el.classList.toggle('active', el.dataset.name === name));
-  renderMain();
-}
-
-function renderMain() {
-  const main = document.getElementById('main');
-  if (currentTool.name === 'excel-viewer') { renderExcelViewer(main); return; }
-  const cfg = TOOL_CONFIGS[currentTool.name] || { fields: [] };
-  const fv = {};
-  cfg.fields.forEach(f => { if (f.default !== undefined) fv[f.key] = f.default; });
-  let ipHint = '';
-  if (currentTool.name === 'ip-port-checker' && systemInfo && systemInfo.ips && systemInfo.ips.length > 0) {
-    ipHint = '<div class="local-ips">本机 IP：' +
-      systemInfo.ips.map(ip => '<span class="ip-chip" onclick="fillIp(\'' + ip.ip + '\')">' + ip.ip + '</span>').join('') +
-      ' <span style="color:#95a5a6;">（点击填入）</span></div>';
-  }
-  main.innerHTML = '<h2>' + currentTool.displayName + '</h2>' +
-    '<div class="subtitle">' + currentTool.description + '</div>' + ipHint +
-    '<div id="formArea">' + renderForm(cfg, fv) + '</div>' +
-    '<button class="btn" onclick="execute()">执行</button>' +
-    '<div class="result" id="result" style="display:none;"></div>';
-  cfg.fields.forEach(f => {
-    if (f.type === 'select') {
-      const el = document.getElementById('field-' + f.key);
-      if (el) el.addEventListener('change', () => {
-        fv[f.key] = el.value;
-        document.getElementById('formArea').innerHTML = renderForm(cfg, getFormValues(cfg));
-        bindFormEvents(cfg, fv);
-      });
+async function copyText(text) {
+  try {
+    if (navigator.clipboard && window.isSecureContext) await navigator.clipboard.writeText(text);
+    else {
+      const field=document.createElement('textarea'); field.value=text; field.style.position='fixed'; field.style.opacity='0'; document.body.appendChild(field); field.select();
+      const copied=document.execCommand('copy'); field.remove(); if(!copied) throw new Error('请选中文本后手动复制');
     }
-  });
-}
-
-function fillIp(ip) { document.getElementById('field-ip').value = ip; }
-
-function getFormValues(cfg) {
-  const v = {};
-  cfg.fields.forEach(f => {
-    const el = document.getElementById('field-' + f.key);
-    if (el) v[f.key] = f.type === 'checkbox' ? el.checked : el.value;
-  });
-  return v;
-}
-
-function bindFormEvents(cfg, fv) {
-  cfg.fields.forEach(f => {
-    if (f.type === 'select') {
-      const el = document.getElementById('field-' + f.key);
-      if (el) el.addEventListener('change', () => {
-        document.getElementById('formArea').innerHTML = renderForm(cfg, getFormValues(cfg));
-        bindFormEvents(cfg, fv);
-      });
-    }
-  });
-}
-
-function renderForm(cfg, values) {
-  return cfg.fields.map(f => {
-    if (f.showWhen && !f.showWhen(values)) return '';
-    const val = values[f.key] !== undefined ? values[f.key] : (f.default || '');
-    if (f.type === 'select') return '<div class="form-group"><label>' + f.label + '</label><select id="field-' + f.key + '">' +
-      f.options.map(o => '<option value="' + o.value + '" ' + (o.value === val ? 'selected' : '') + '>' + o.label + '</option>').join('') + '</select></div>';
-    if (f.type === 'textarea') return '<div class="form-group"><label>' + f.label + '</label><textarea id="field-' + f.key + '" placeholder="' + (f.placeholder || '') + '">' + val + '</textarea></div>';
-    if (f.type === 'checkbox') return '<div class="form-group checkbox-group"><input type="checkbox" id="field-' + f.key + '" ' + (val ? 'checked' : '') + '>' +
-      '<label for="field-' + f.key + '" style="margin:0;font-weight:normal;">' + f.label + '</label></div>';
-    if (f.type === 'password') return '<div class="form-group"><label>' + f.label + '</label><input type="password" id="field-' + f.key + '" value="' + val + '" placeholder="' + (f.placeholder || '') + '"></div>';
-    return '<div class="form-group"><label>' + f.label + '</label><input type="text" id="field-' + f.key + '" value="' + val + '" placeholder="' + (f.placeholder || '') + '"></div>';
-  }).join('');
-}
-
-function execute() {
-  const cfg = TOOL_CONFIGS[currentTool.name];
-  const params = {};
-  cfg.fields.forEach(f => {
-    const el = document.getElementById('field-' + f.key);
-    if (el && (!f.showWhen || f.showWhen(getFormValues(cfg)))) params[f.key] = f.type === 'checkbox' ? el.checked : el.value;
-  });
-  const btn = document.querySelector('.btn');
-  btn.disabled = true; btn.textContent = '执行中...';
-  fetch('/api/tools/' + currentTool.name + '/execute', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(params)
-  }).then(r => r.json()).then(res => {
-    btn.disabled = false; btn.textContent = '执行'; showResult(res);
-  }).catch(e => {
-    btn.disabled = false; btn.textContent = '执行';
-    showResult({ success: false, message: '请求失败: ' + e.message });
-  });
-}
-
-function showResult(res) {
-  const box = document.getElementById('result');
-  box.style.display = 'block';
-  if (!res.success) {
-    box.innerHTML = '<div class="result-header"><h3>结果</h3></div><div class="result-box error">' + (res.message || '执行失败') + '</div>';
-    return;
-  }
-  let content = ''; const data = res.data;
-  if (currentTool.name === 'timestamp') {
-    content = '<div class="result-box success">时间戳（秒）: ' + data.timestampSec + '\n时间戳（毫秒）: ' + data.timestampMs + '\n日期时间: ' + data.datetime + '</div>';
-  } else if (currentTool.name === 'json-format') {
-    const cls = data.valid === false ? 'error' : (data.valid === true ? 'success' : '');
-    content = '<div class="result-box ' + cls + '">' + escapeHtml(data.output) + '</div>';
-  } else if (currentTool.name === 'text-diff') {
-    content = renderTextDiff(data);
-  } else if (currentTool.name === 'json-compare') {
-    content = renderJsonCompare(data);
-  } else if (currentTool.name === 'ip-port-checker') {
-    content = renderPortChecker(data);
-  } else {
-    content = '<div class="result-box">' + escapeHtml(JSON.stringify(data, null, 2)) + '</div>';
-  }
-  const summary = data.identical ? '完全相同' : (data.diffCount !== undefined ? data.diffCount + ' 处差异' :
-    (data.changeCount !== undefined ? data.changeCount + ' 处变更' :
-    (data.openCount !== undefined ? '开放 ' + data.openCount + ' / 共 ' + data.totalCount : '完成')));
-  box.innerHTML = '<div class="result-header"><h3>结果（' + summary + '）</h3></div>' + content;
+  } catch(e) { alert('复制失败：'+e.message); }
 }
 
 function renderPortChecker(data) {
@@ -460,16 +331,25 @@ function escapeHtml(str) {
   if (str === null || str === undefined) return '';
   const div = document.createElement('div');
   div.textContent = str;
-  return div.innerHTML;
+  return div.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
 // ========== Excel 浏览工具 ==========
 let excelState = { fileId: null, fileName: null, sheets: [], currentSheet: 0, currentPage: 1, pageSize: 100 };
+const excelDrafts = {};
+const excelFields = ['Class','Package','Mode','HeaderRow','TypeRow','CommentRow'];
+let excelLoadSequence = 0;
+let excelUploadSequence = 0;
+function saveExcelDraft() {
+  if(!excelState.fileId || !document.getElementById('excelEntityClass')) return;
+  const values={}; excelFields.forEach(key=>{ values[key]=document.getElementById('excelEntity'+key).value; });
+  excelDrafts[excelState.fileId+':'+excelState.currentSheet]=values;
+}
 
 function renderExcelViewer(main) {
-  main.innerHTML = '<h2>' + currentTool.displayName + '</h2>' +
-    '<div class="subtitle">' + currentTool.description + '</div><div id="excelContent"></div>';
-  if (!excelState.fileId) renderExcelUpload(); else renderExcelWorkspace();
+  main.innerHTML=taskHeader()+'<div id="excelContent"></div><div id="apiHelp"></div>';
+  if (!excelState.fileId) renderExcelUpload(); else { renderExcelWorkspace(); loadExcelSheet(excelState.currentSheet,excelState.currentPage); }
+  renderApiHelp('excel-viewer');
 }
 
 function renderExcelUpload() {
@@ -490,19 +370,30 @@ function renderExcelUpload() {
 
 function handleExcelFile(file) {
   if (!file) return;
+  const sequence=requestSequence;
+  const uploadSequence=++excelUploadSequence;
   const fd = new FormData(); fd.append('file', file);
   document.getElementById('excelContent').innerHTML =
     '<div style="text-align:center;padding:40px;color:#7f8c8d;">解析中... ' + escapeHtml(file.name) + '</div>';
   fetch('/api/excel/upload', { method: 'POST', body: fd }).then(r => r.json()).then(res => {
+    if(uploadSequence!==excelUploadSequence) {
+      if(res.success) fetch('/api/excel/'+encodeURIComponent(res.fileId),{method:'DELETE'}).catch(()=>{});
+      return;
+    }
     if (!res.success) {
-      document.getElementById('excelContent').innerHTML = '<div class="result-box error" style="margin-top:10px;">' + escapeHtml(res.message) + '</div>';
-      setTimeout(renderExcelUpload, 2000); return;
+      if(sequence===requestSequence) {
+        renderExcelUpload();
+        document.getElementById('excelContent').insertAdjacentHTML('afterbegin','<div class="result-box error">'+escapeHtml(res.message)+'</div>');
+      }
+      return;
     }
     excelState.fileId = res.fileId; excelState.fileName = res.fileName;
     excelState.sheets = res.sheets; excelState.currentSheet = 0; excelState.currentPage = 1;
-    renderExcelWorkspace(); loadExcelSheet(0, 1);
+    if(currentTool && currentTool.name==='excel-viewer' && document.getElementById('excelContent')) {
+      renderExcelWorkspace(); loadExcelSheet(0, 1);
+    }
   }).catch(e => {
-    document.getElementById('excelContent').innerHTML = '<div class="result-box error" style="margin-top:10px;">上传失败: ' + e.message + '</div>';
+    if(sequence===requestSequence && uploadSequence===excelUploadSequence) document.getElementById('excelContent').innerHTML = '<div class="result-box error" style="margin-top:10px;">上传失败: ' + escapeHtml(e.message) + '</div>';
   });
 }
 
@@ -511,7 +402,7 @@ function renderExcelWorkspace() {
   let tabs = '<div class="sheet-tabs">';
   excelState.sheets.forEach((s, i) => {
     tabs += '<div class="sheet-tab' + (i === excelState.currentSheet ? ' active' : '') + '" onclick="switchExcelSheet(' + i + ')">' +
-      escapeHtml(s.name) + ' <span style="color:#95a5a6;font-size:11px;">(' + s.totalRows + '行)</span></div>';
+      escapeHtml(s.name) + ' <span style="color:#95a5a6;font-size:16px;">(' + s.totalRows + '行)</span></div>';
   });
   tabs += '</div>';
   document.getElementById('excelContent').innerHTML =
@@ -528,22 +419,27 @@ function renderExcelWorkspace() {
         '<div class="form-group"><label>类型行</label><input type="text" id="excelEntityTypeRow" value="2"></div>' +
         '<div class="form-group"><label>注释行</label><input type="text" id="excelEntityCommentRow" value="3"></div>' +
       '</div>' +
-      '<div style="font-size:12px;color:#7f8c8d;margin-bottom:10px;">行号从 1 开始；类型行/注释行填 0 表示不使用。默认：第1行字段、第2行类型、第3行注释。</div>' +
-      '<button class="btn btn-sm" onclick="generateExcelEntity()">生成 Entity</button>' +
+      '<div style="font-size:16px;color:#7f8c8d;margin-bottom:10px;">行号从 1 开始；类型行/注释行填 0 表示不使用。默认：第1行字段、第2行类型、第3行注释。</div>' +
+      '<button class="btn btn-sm" id="excelGenerateButton" onclick="generateExcelEntity()">生成 Entity</button>' +
       '<div id="excelEntityResult" style="margin-top:12px;"></div>' +
     '</div>' +
     '<div id="excelTableContainer"><div style="text-align:center;padding:30px;color:#95a5a6;">加载中...</div></div>' +
     '<div class="excel-pagination" id="excelPagination"></div>';
+  const saved=excelDrafts[excelState.fileId+':'+excelState.currentSheet];
+  if(saved) excelFields.forEach(key=>{ document.getElementById('excelEntity'+key).value=saved[key]; });
 }
 
 function switchExcelSheet(i) {
+  saveExcelDraft();
   excelState.currentSheet = i; excelState.currentPage = 1;
   renderExcelWorkspace(); loadExcelSheet(i, 1);
 }
 
 function loadExcelSheet(sheetIndex, page) {
+  const sequence=requestSequence, loadSequence=++excelLoadSequence;
   fetch('/api/excel/' + excelState.fileId + '/sheet/' + sheetIndex + '?page=' + page + '&size=' + excelState.pageSize)
     .then(r => r.json()).then(res => {
+      if(sequence!==requestSequence || loadSequence!==excelLoadSequence) return;
       if (!res.success) {
         document.getElementById('excelTableContainer').innerHTML = '<div class="result-box error">' + escapeHtml(res.message) + '</div>';
         return;
@@ -551,7 +447,7 @@ function loadExcelSheet(sheetIndex, page) {
       excelState.currentPage = res.page;
       renderExcelTable(res); renderExcelPagination(res);
     }).catch(e => {
-      document.getElementById('excelTableContainer').innerHTML = '<div class="result-box error">加载失败: ' + e.message + '</div>';
+      if(sequence===requestSequence && loadSequence===excelLoadSequence) document.getElementById('excelTableContainer').innerHTML = '<div class="result-box error">加载失败: ' + escapeHtml(e.message) + '</div>';
     });
 }
 
@@ -591,7 +487,7 @@ function renderExcelTable(data) {
         val = cell.value || '';
         if (cell.style) {
           if (cell.style.bold) style += 'font-weight:bold;';
-          if (cell.style.fontSize) style += 'font-size:' + cell.style.fontSize + 'pt;';
+          if (cell.style.fontSize) style += 'font-size:' + Math.max(12, cell.style.fontSize) + 'pt;';
           if (cell.style.bgColor) style += 'background-color:#' + cell.style.bgColor + ';';
           if (cell.style.fontColor) style += 'color:#' + cell.style.fontColor + ';';
           if (cell.style.alignment) style += 'text-align:' + cell.style.alignment + ';';
@@ -615,6 +511,10 @@ function renderExcelPagination(data) {
 }
 
 function generateExcelEntity() {
+  saveExcelDraft();
+  const sequence=requestSequence, sheetIndex=excelState.currentSheet, fileId=excelState.fileId;
+  const button=document.getElementById('excelGenerateButton');
+  button.disabled=true;
   const result = document.getElementById('excelEntityResult');
   result.innerHTML = '<div style="color:#7f8c8d;">生成中...</div>';
   const payload = {
@@ -631,23 +531,27 @@ function generateExcelEntity() {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
   }).then(r => r.json()).then(res => {
+    if(sequence!==requestSequence || sheetIndex!==excelState.currentSheet || fileId!==excelState.fileId || !result.isConnected) return;
     if (!res.success) {
       result.innerHTML = '<div class="result-box error">' + escapeHtml(res.message || '生成失败') + '</div>';
       return;
     }
-    let summary = '类: ' + res.packageName + '.' + res.className + '，字段: ' + res.fieldCount;
-    result.innerHTML = '<div style="font-size:12px;margin-bottom:6px;color:#7f8c8d;">' + escapeHtml(summary) + '</div>' +
-      '<div class="result-box">' + escapeHtml(res.output) + '</div>';
+    result.innerHTML=sourceResult(res)+rawDetails(res);
   }).catch(e => {
-    result.innerHTML = '<div class="result-box error">请求失败: ' + escapeHtml(e.message) + '</div>';
+    if(result.isConnected && sequence===requestSequence) result.innerHTML = '<div class="result-box error">请求失败: ' + escapeHtml(e.message) + '</div>';
+  }).finally(()=>{
+    if(button.isConnected) button.disabled=false;
   });
 }
 
 function resetExcel() {
+  requestSequence++; excelLoadSequence++; excelUploadSequence++;
+  Object.keys(excelDrafts).forEach(key=>delete excelDrafts[key]);
   if (excelState.fileId) fetch('/api/excel/' + excelState.fileId, { method: 'DELETE' }).catch(() => {});
   excelState = { fileId: null, fileName: null, sheets: [], currentSheet: 0, currentPage: 1, pageSize: 100 };
   renderExcelViewer(document.getElementById('main'));
 }
 </script>
+<script src="/task-ui.js"></script>
 </body>
 </html>
