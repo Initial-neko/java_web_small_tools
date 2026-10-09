@@ -150,6 +150,27 @@ const TOOL_CONFIGS = {
     { key: 'packageName', label: '包名', type: 'text', default: 'com.example.model', showWhen: f => f.mode !== 'mapping' },
     { key: 'input', label: 'JSON 样本', type: 'textarea', placeholder: '{"user_id":1,"name":"Alice","orders":[{"id":1}]}' }
   ]},
+  'xml-format': { fields: [
+    { key: 'action', label: '操作', type: 'select', options: [
+      { value: 'format', label: '美化（2 空格缩进）' },
+      { value: 'compress', label: '压缩（单行）' },
+      { value: 'validate', label: '校验' }]},
+    { key: 'input', label: 'XML 内容', type: 'textarea', placeholder: '<root><name>Alice</name><tags><tag>a</tag><tag>b</tag></tags></root>' }
+  ]},
+  'xml-to-json': { fields: [
+    { key: 'inferTypes', label: '数字/布尔自动类型推断（关闭则全部输出字符串）', type: 'checkbox', default: true },
+    { key: 'pretty', label: '美化输出', type: 'checkbox', default: true },
+    { key: 'input', label: 'XML 内容', type: 'textarea', placeholder: '<user id="1"><name>Alice</name><tags><tag>a</tag><tag>b</tag></tags></user>' }
+  ]},
+  'xml-to-java': { fields: [
+    { key: 'mode', label: '输出模式', type: 'select', options: [
+      { value: 'normal', label: 'Normal Java Entity' },
+      { value: 'lombok', label: 'Lombok @Data Entity' },
+      { value: 'mapping', label: 'Fastjson2 JSONObject 显式 Mapping Code' }]},
+    { key: 'className', label: '类名（留空则按 XML 根元素名生成）', type: 'text' },
+    { key: 'packageName', label: '包名', type: 'text', default: 'com.example.model', showWhen: f => f.mode !== 'mapping' },
+    { key: 'input', label: 'XML 样本', type: 'textarea', placeholder: '<user id="1"><name>Alice</name><orders><order id="1"><amount>9.90</amount></order></orders></user>' }
+  ]},
   'ddl-to-java': { fields: [
     { key: 'databaseType', label: 'DDL 方言', type: 'select', options: [
       { value: 'dm', label: '达梦 DM' },
@@ -396,7 +417,7 @@ function showResult(res) {
   let content = ''; const data = res.data;
   if (currentTool.name === 'timestamp') {
     content = '<div class="result-box success">时间戳（秒）: ' + data.timestampSec + '\n时间戳（毫秒）: ' + data.timestampMs + '\n日期时间: ' + data.datetime + '</div>';
-  } else if (currentTool.name === 'json-format') {
+  } else if (currentTool.name === 'json-format' || currentTool.name === 'xml-format') {
     const cls = data.valid === false ? 'error' : (data.valid === true ? 'success' : '');
     content = '<div class="result-box ' + cls + '">' + escapeHtml(data.output) + '</div>';
   } else if (currentTool.name === 'text-diff') {
