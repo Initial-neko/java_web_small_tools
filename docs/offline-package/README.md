@@ -31,9 +31,9 @@
 
 只需要 JDK 8+。
 
-Windows：
+Git Bash / Linux：
 
-    start.bat
+    sh start.sh
 
 Git Bash / Linux：
 
@@ -49,9 +49,9 @@ toolbox-exec.jar 是 Spring Boot fat jar，运行依赖已经内嵌。
 
 lib/ 包含普通 thin toolbox.jar 以及 Toolbox 的全部 runtime 依赖 jar。
 
-Windows 可直接：
+Git Bash / Linux 可直接：
 
-    start-classpath.bat
+    sh start-classpath.sh
 
 Linux / Git Bash：
 
@@ -110,3 +110,9 @@ ZIP 已包含直接运行和普通 classpath 导入需要的 runtime jar。
 或者另外准备完整 .m2/repository 镜像。
 
 对直接运行 Toolbox 或把 jar 导入内部 Java 工程，本 ZIP 已包含所需 runtime lib。
+
+## 一键构建（sh）
+
+在仓库根目录执行 sh package.sh。需要 Java 8 JDK、Maven、sh 和 sha256sum；Windows 使用 Git Bash。默认离线并执行所有测试，缺少缓存时失败并保留日志；只有显式 --online 才联网补齐 pom.xml 的固定依赖，不升级版本。--skip-tests 可跳过测试。
+
+输出 target/release/java-web-small-tools-offline.zip，包含 Web/桌面/JNA依赖/源码/测试/文档/驱动目录/校验。通过 JDK jar 生成 ZIP，不要求 zip 命令。解压后执行 sh start-desktop.sh 或 sh start.sh；source/package.sh 可复用打包。

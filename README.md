@@ -26,25 +26,73 @@
 | SQL 批量指标探查 | `sql-metric-batch` | 批量识别指标候选并发现重复计算/不同指标别名 |
 | MyBatis Generator | `mybatis-generator` | 数据库表生成 Java Model / Mapper / XML；外置 JDBC Driver，优先验证 Oracle / 达梦 |
 
+## 桌面工具
+
+桌面工具不进入 Web 首页，使用独立 Java 入口运行。
+
+| 工具 | 说明 |
+|---|---|
+| Clipboard History | 记录启动之后的文本、图片、文件路径剪切板历史；支持搜索、删除、重新复制 |
+| Screenshot | 鼠标框选截图，自动复制到系统剪切板、进入 Clipboard History，并保存 PNG |
+
+构建后会同时得到：
+
+```text
+target/toolbox-exec.jar       # Web 工具
+target/toolbox-desktop.jar    # 桌面工具
+```
+
+Windows：
+
+```text
+start-desktop.bat   # 启动剪切板历史 + 系统托盘
+screenshot.bat      # 一次性区域截图
+```
+
+完整说明与验收清单见 `docs/desktop-tools/README.md`。
+
 ## 环境要求
 - JDK 8+
 - Maven 3.6+（仅编译时需要）
 
 ## 快速开始
 
+### Web
+
 ```bash
 java -jar toolbox-exec.jar
 ```
+
 浏览器访问 http://localhost:8088
 
 Windows 双击 `start.bat`，Linux/Mac 执行 `./start.sh`。
 
-从源码编译：`mvn clean package && java -jar target/toolbox-exec.jar`
+### Desktop
+
+```bash
+java -jar target/toolbox-desktop.jar
+```
+
+Windows 推荐双击 `start-desktop.bat`。桌面 JAR 与 `desktop-lib/` 必须一起保留；固定版本 JNA 5.14.0 已随离线包提供，运行不需要联网。
+
+- 正文默认 22px，可调整并保存；支持全文搜索、类型筛选、图片预览和详情。
+- 普通历史默认最多 200 条，可在「上限」设置为 1–10000；超限删除最旧未固定条目及其图片缓存。固定条目置顶、重启保留，不计入普通上限。取消固定后重新参与清理。
+- 默认全局快捷键：`Ctrl+Alt+V` 打开剪切板、`Ctrl+Alt+S` 截图；在「快捷键」修改，重复或被占用的组合会提示，修改失败恢复原注册。全局快捷键目前支持 Windows。
+- 截图框选后进入标注窗口：拖动添加红框；切到文字模式，输入内容后点击图片放置；`Ctrl+Z` 撤销，`Esc` 取消。复制并完成或保存 PNG 后发布标注结果，保留原始尺寸。
+- 历史只管理自有缓存；文件条目指向的原文件、手动另存的 PNG 不参与自动清理。条数限制不等于磁盘容量限制，固定条目由用户主动长期保留。
+
+一键构建发行包：在 Git Bash / Linux 执行 `sh package.sh`。默认使用 Maven 离线缓存并执行完整测试；需要补齐固定依赖时显式加 `--online`，仅需快速打包可加 `--skip-tests`。使用 JDK 自带 jar 生成 ZIP，无需额外 zip 程序。
+
+从源码完整编译：
+
+```bash
+mvn clean package
+```
 
 ## API
 
-- `GET /api/tools` — 列出所有工具
-- `POST /api/tools/{name}/execute` — 执行指定工具
+- `GET /api/tools` — 列出所有 Web 工具
+- `POST /api/tools/{name}/execute` — 执行指定 Web 工具
 - `GET /api/system/info` — 本机系统信息
 - `POST /api/excel/upload` — 上传 Excel
 - `GET /api/excel/{fileId}/sheet/{index}?page=1&size=100` — 分页读取 Excel
@@ -58,11 +106,12 @@ Windows 双击 `start.bat`，Linux/Mac 执行 `./start.sh`。
 - Alibaba Druid 1.2.28（DM SQL Parser / SchemaStat）
 - java-diff-utils 4.12（文本 Diff）
 - Apache POI 5.2.5（Excel 解析）
-- 原生 HTML + JavaScript（前端）
-
+- AWT + Swing（桌面剪切板/截图工具）
+- 原生 HTML + JavaScript（Web 前端）
 
 ## 内网与数据工具文档
 
+- `docs/desktop-tools/README.md` — Clipboard History / Screenshot、启动、数据目录、Windows 验收
 - `docs/entity-generator/README.md` — JSON/Excel/DDL/JDBC Query → Entity、统一类型映射
 - `docs/offline-package/README.md` — 完整离线 ZIP、lib/、启动与校验
 - `docs/mybatis-generator/README.md` — MyBatis Generator、Oracle/达梦、外置 Driver、离线构建
@@ -73,15 +122,19 @@ Windows 双击 `start.bat`，Linux/Mac 执行 `./start.sh`。
 
 > JDBC Driver Jar 不提交 Git，也不打进 toolbox.jar；内网部署时放在 `drivers/` 并由工具运行时加载。
 
-
 ## 离线交付
 
 执行：
 
-    bash scripts/package-offline.sh
+    sh package.sh
 
 生成：
 
     target/release/java-web-small-tools-offline.zip
 
-ZIP 同时包含可直接运行的 toolbox-exec.jar，以及 lib/ 下 thin toolbox.jar + 全部 runtime 依赖。
+ZIP 同时包含：
+
+- `toolbox-exec.jar`：Web 工具；
+- `toolbox-desktop.jar`：Clipboard/Screenshot 桌面工具；
+- `lib/`：thin toolbox.jar + 全部 Web runtime 依赖；
+- 桌面/Web 启动脚本和完整 docs。

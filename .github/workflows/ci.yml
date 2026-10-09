@@ -19,6 +19,6 @@ jobs:
           java-version: '8'
           cache: maven
       - name: Test
-        run: mvn -B test
+        run: xvfb-run -a mvn -B test
       - name: Verify offline package
-        run: bash scripts/package-offline.sh --skip-tests
+        run: sh package.sh --online --skip-tests
