@@ -4,7 +4,7 @@ const base=new URL(process.argv[2]||'http://127.0.0.1:8088');
 assert(['127.0.0.1','localhost','[::1]'].includes(base.hostname),'Acceptance runner only calls a local test service');
 async function main() {
   const catalog=await (await fetch(base.origin+'/api/help')).json();
-  assert.equal(catalog.pages.length,6);
+  assert.equal(catalog.pages.length,7);
   const discovery=await (await fetch(base.origin+'/api/tools')).json();
   assert(discovery.every(t=>catalog.tools.some(h=>h.name===t.name)));
   const unknown=await fetch(base.origin+'/api/tools/not-a-tool/help'); assert.equal(unknown.status,404);

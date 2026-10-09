@@ -105,6 +105,8 @@
   .excel-pagination .page-info { color: #7f8c8d; }
 </style>
 <link rel="stylesheet" href="/task-ui.css">
+<!-- SQL 血缘展示器：所有选择器都限定在 .lv-root 内，不会影响主页面 -->
+<link rel="stylesheet" href="/lineage-viewer/app.css">
 </head>
 <body>
 <div class="app">
@@ -553,5 +555,7 @@ function resetExcel() {
 }
 </script>
 <script src="/task-ui.js"></script>
+<script src="/lineage-viewer/vendor/cytoscape.min.js"></script>
+<script src="/lineage-viewer/app.js"></script>
 </body>
 </html>

@@ -35,7 +35,8 @@ class ToolHelpApiTest {
 
     @Test void shouldSeparateTaskNavigationFromCapabilityDiscovery() throws Exception {
         JsonNode catalog = read("/api/help");
-        assertEquals(6, catalog.path("pages").size());
+        // 7 = json / text / entity / sql / metric / lineage / time
+        assertEquals(7, catalog.path("pages").size());
         Set<String> documented = new HashSet<String>();
         for (JsonNode tool : catalog.path("tools")) documented.add(tool.path("name").asText());
         for (JsonNode tool : read("/api/tools")) assertTrue(documented.contains(tool.path("name").asText()));
@@ -52,6 +53,33 @@ class ToolHelpApiTest {
         assertEquals("json-to-java", help.path("name").asText());
         assertTrue(help.path("endpoints").get(0).path("parameters").size() >= 4);
         mvc.perform(get("/api/tools/does-not-exist/help")).andExpect(status().isNotFound());
+    }
+
+    @Test void shouldResolveLineageSqlsByTableNameNotOnlyBySqlName() throws Exception {
+        // /sqls/{name} 既要能按 SQL 名取单条明细，也要能按表名取该表的全部产出 SQL。
+        JsonNode overview = read("/api/lineage-viewer/overview").path("data");
+        assertTrue(overview.path("tableCount").asInt() > 0, "内置演示数据应已建图");
+        assertEquals(overview.path("tableCount").asInt() > 0, true);
+
+        int checkedTables = 0;
+        int checkedSqls = 0;
+        for (JsonNode leaf : read("/api/lineage-viewer/tables/leaves").path("data")) {
+            String table = leaf.path("name").asText();
+            JsonNode byTable = read("/api/lineage-viewer/sqls/" + table).path("data");
+            assertTrue(byTable.isArray() && byTable.size() > 0, "末端表 " + table + " 应能回溯到产出 SQL");
+            for (JsonNode sql : byTable) {
+                assertFalse(sql.path("sql").isNull(), "产出 SQL 应带正文");
+                assertTrue(sql.path("outputTables").isArray());
+                checkedSqls++;
+            }
+            // 反向：拿其中一条 SQL 的名字去查，应得到同样这条记录
+            String sqlName = byTable.get(0).path("name").asText();
+            JsonNode bySql = read("/api/lineage-viewer/sqls/" + sqlName).path("data");
+            assertTrue(bySql.isArray() && bySql.size() == 1, "按 SQL 名应只命中一条");
+            assertEquals(sqlName, bySql.get(0).path("name").asText());
+            if (++checkedTables >= 5) break;
+        }
+        assertTrue(checkedTables == 5 && checkedSqls >= 5, "至少验证 5 张末端表");
     }
 
     @Test void shouldDocumentActualMyBatisBooleanDefaults() throws Exception {
@@ -72,8 +100,21 @@ class ToolHelpApiTest {
             for (JsonNode endpoint : tool.path("endpoints")) {
                 if (!endpoint.path("testable").asBoolean()) continue;
                 for (JsonNode example : endpoint.path("examples")) {
-                    JsonNode result = mapper.readTree(mvc.perform(post(endpoint.path("path").asText())
-                            .contentType(MediaType.APPLICATION_JSON).content(example.path("body").toString()))
+                    String url = endpoint.path("path").asText();
+                    java.util.Iterator<java.util.Map.Entry<String,JsonNode>> paths = example.path("path").fields();
+                    while (paths.hasNext()) {
+                        java.util.Map.Entry<String,JsonNode> p = paths.next();
+                        url = url.replace("{" + p.getKey() + "}", p.getValue().asText());
+                    }
+                    org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder request =
+                            "GET".equals(endpoint.path("method").asText()) ? get(url) : post(url)
+                            .contentType(MediaType.APPLICATION_JSON).content(example.path("body").toString());
+                    java.util.Iterator<java.util.Map.Entry<String,JsonNode>> queries = example.path("query").fields();
+                    while (queries.hasNext()) {
+                        java.util.Map.Entry<String,JsonNode> p = queries.next();
+                        request.param(p.getKey(), p.getValue().asText());
+                    }
+                    JsonNode result = mapper.readTree(mvc.perform(request)
                             .andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
                     assertTrue(result.path("success").asBoolean(), tool.path("name") + ": " + result);
                     assertFalse(result.path("data").isNull());

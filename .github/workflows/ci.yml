@@ -22,5 +22,7 @@ jobs:
         run: xvfb-run -a mvn -B test
       - name: Verify API example scripts
         run: node src/test/js/task-ui.test.cjs
+      - name: Verify lineage request lifecycle
+        run: node src/test/js/lineage-ui.test.cjs
       - name: Verify offline package
         run: sh package.sh --online --skip-tests

@@ -5,7 +5,7 @@
 ## 功能
 
 ### 按任务使用
-首页提供六个常用任务：JSON 工作台、文本对比、实体生成、SQL 结构分析、SQL 指标探查、时间转换。单条/批量和输入来源在任务内切换，切换保留当前会话输入。数据库代码生成和网络诊断位于“高级工具”，服务端硬件/JVM/IP 信息位于“环境信息”。
+首页提供七个常用任务：JSON 工作台、文本对比、实体生成、SQL 结构分析、SQL 指标探查、SQL 血缘展示、时间转换。单条/批量和输入来源在任务内切换，切换保留当前会话输入。数据库代码生成和网络诊断位于“高级工具”，服务端硬件/JVM/IP 信息位于“环境信息”。
 
 每项操作可展开“API 调用与参数说明”，查看参数、必填条件、默认值、JSON 请求体和可复制的 curl 示例。实体源码可直接复制或下载；API 原始响应可展开查看。
 
@@ -38,6 +38,7 @@ curl -X POST http://localhost:8088/api/tools/json-to-java/execute \
 | 达梦 SQL 批量分析 | `dm-sql-batch` | JSON/分隔文本批量分析、故障隔离、读写表汇总、表级依赖边 |
 | SQL 指标探查 | `sql-metric-probe` | 从 SELECT/WITH 中识别聚合指标、维度、WHERE/HAVING 口径和来源 |
 | SQL 批量指标探查 | `sql-metric-batch` | 批量识别指标候选并发现重复计算/不同指标别名 |
+| SQL 血缘展示 | `lineage-viewer` | 从末端产出表出发交互式钻取全链路血缘：末端列表、搜索、分层子图、SQL 明细回溯 |
 | MyBatis Generator | `mybatis-generator` | 数据库表生成 Java Model / Mapper / XML；外置 JDBC Driver，优先验证 Oracle / 达梦 |
 
 ## 桌面工具
@@ -112,6 +113,12 @@ mvn clean package
 - `GET /api/excel/{fileId}/sheet/{index}?page=1&size=100` — 分页读取 Excel
 - `POST /api/excel/{fileId}/entity` — 按字段/类型/注释行生成 Java Entity
 - `DELETE /api/excel/{fileId}` — 清理
+- `GET /api/lineage-viewer/overview` — 血缘图规模与分层统计
+- `GET /api/lineage-viewer/tables/leaves?scope=&keyword=` — 末端产出表列表（支持搜索）
+- `GET /api/lineage-viewer/tables/{name}/lineage?depth=6` — 焦点表的上游闭包子图
+- `GET /api/lineage-viewer/edges/detail?from=&to=` — 某条血缘边背后的全部 SQL
+- `GET /api/lineage-viewer/sqls/{name}` — 回溯产出某张表的所有 SQL
+- `POST /api/lineage-viewer/rebuild` — 用新 JSON 重建血缘图
 
 ## 技术栈
 - Java 8 + Spring Boot 2.7.18
@@ -131,6 +138,7 @@ mvn clean package
 - `docs/mybatis-generator/README.md` — MyBatis Generator、Oracle/达梦、外置 Driver、离线构建
 - `drivers/README.md` — DM/Oracle JDBC Driver 放置和版本说明
 - `docs/sql-lineage/README.md` — 达梦批量 SQL 表级分析
+- `docs/lineage-viewer/README.md` — SQL 血缘展示：建图算法、接口、数据源优先级与性能说明
 - `docs/metric-probe/README.md` — SQL 指标探查规则、输出与测试范围
 - `docs/notebook/2026-09-29-tools.md` — 当前工具需求 Notebook
 
