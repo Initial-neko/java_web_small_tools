@@ -44,7 +44,13 @@ function selectTool(name) {
   const page = pages().find(p => p.tools.includes(name));
   if (!page) return;
   currentPage = page; currentTool = tools.find(t => t.name===name); lastModes[page.id] = name;
-  resetView(); renderToolList(); renderMain();
+  unmountHeavyTools(); resetView(); renderToolList(); renderMain();
+}
+// 重图形工具在切走时主动释放，避免 canvas 与事件监听常驻内存。
+function unmountHeavyTools() {
+  if (window.LineageViewer) {
+    try { window.LineageViewer.unmount(); } catch (e) { /* 忽略 */ }
+  }
 }
 function taskHeader() {
   return '<h2>'+escapeHtml(currentPage.title)+'</h2><p class="subtitle">'+escapeHtml(currentPage.description)+'</p>' +
@@ -58,6 +64,7 @@ function renderMain() {
     loadSystemInfo(); renderApiHelp(currentTool.name); return;
   }
   if (currentTool.name==='excel-viewer') { renderExcelViewer(main); return; }
+  if (currentTool.name==='lineage-viewer') { renderLineageViewer(main); return; }
   const cfg=TOOL_CONFIGS[currentTool.name];
   const values={}; cfg.fields.forEach(f=>{ if(f.default!==undefined) values[f.key]=f.default; else if(f.type==='select') values[f.key]=f.options[0].value; });
   Object.assign(values,drafts[currentTool.name]||{});
@@ -136,6 +143,16 @@ function showResult(res) {
   box.innerHTML='<h3>处理结果</h3>'+content+rawDetails(res);
 }
 function shellQuote(text) { return "'"+String(text).replace(/'/g,"'\"'\"'")+"'"; }
+// ========== SQL 血缘展示工具 ==========
+function renderLineageViewer(main) {
+  if (!window.LineageViewer) {
+    // index.html 的内联脚本里不能出现字面量闭合标签，这里的 \x3C 同样是刻意的转义。
+    main.innerHTML = taskHeader() + '<div class="result-box error">前端脚本未加载成功，请检查 /lineage-viewer/app.js 是否可访问。\x3C/div>';
+    return;
+  }
+  main.innerHTML = taskHeader() + '<div id="lv-root" class="lv-root"></div>';
+  window.LineageViewer.mount(document.getElementById('lv-root'));
+}
 function curlExample(endpoint,example) {
   let path=endpoint.path.replace('{sheetIndex}','0');
   if(example.query) path+='?'+new URLSearchParams(example.query).toString();

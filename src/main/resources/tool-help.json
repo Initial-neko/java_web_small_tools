@@ -76,6 +76,17 @@
       ]
     },
     {
+      "id": "lineage",
+      "title": "SQL 血缘展示",
+      "description": "从末端产出表出发，交互式钻取全链路血缘",
+      "tools": [
+        "lineage-viewer"
+      ],
+      "labels": [
+        "血缘图谱"
+      ]
+    },
+    {
       "id": "time",
       "title": "时间转换",
       "description": "时间戳与日期互转，支持秒和毫秒",
@@ -1363,6 +1374,243 @@
             }
           ],
           "response": "直接返回 os/java/ips/cpu/memory/disks 等信息，无 success/data 包装"
+        }
+      ]
+    },
+    {
+      "name": "lineage-viewer",
+      "title": "SQL 血缘展示",
+      "category": "lineage",
+      "summary": "末端产出表列表、搜索、分层血缘子图与 SQL 明细回溯",
+      "notes": [
+        "只读接口，全部使用 GET；唯一可写接口是 POST /api/lineage-viewer/rebuild。",
+        "表名在 URL 路径中请做一次 URL 编码（例如 schema.table 中的点号无需转义，空格需转为 %20）。",
+        "depth 表示向上游回溯的跳数，默认 6；depth=0 表示只取当前表的直接上游一层。",
+        "数据源优先级：-Dlineage.data-file 指定的文件 > 工作目录 lineage-sqls.json > 内置示例数据。"
+      ],
+      "endpoints": [
+        {
+          "method": "GET",
+          "path": "/api/lineage-viewer/overview",
+          "contentType": null,
+          "parameters": [],
+          "examples": [
+            {
+              "title": "查看整体规模与分层统计",
+              "query": {}
+            }
+          ],
+          "response": "扁平对象：success/data；data 含 tableCount/edgeCount/leafCount/sourceCount/layers 等统计"
+        },
+        {
+          "method": "GET",
+          "path": "/api/lineage-viewer/tables/leaves",
+          "contentType": null,
+          "parameters": [
+            {
+              "name": "scope",
+              "in": "query",
+              "type": "string",
+              "required": false,
+              "default": null,
+              "enum": [],
+              "description": "限定弱连通分量 id，只返回该分量的末端产出表"
+            },
+            {
+              "name": "keyword",
+              "in": "query",
+              "type": "string",
+              "required": false,
+              "default": null,
+              "enum": [],
+              "description": "按表名或描述模糊过滤，忽略大小写"
+            }
+          ],
+          "examples": [
+            {
+              "title": "列出全部末端产出表",
+              "query": {}
+            }
+          ],
+          "response": "扁平对象：success/data；data 为末端产出表数组（outDegree=0）"
+        },
+        {
+          "method": "GET",
+          "path": "/api/lineage-viewer/tables",
+          "contentType": null,
+          "parameters": [
+            {
+              "name": "keyword",
+              "in": "query",
+              "type": "string",
+              "required": false,
+              "default": null,
+              "enum": [],
+              "description": "按表名或描述模糊过滤，忽略大小写"
+            },
+            {
+              "name": "limit",
+              "in": "query",
+              "type": "integer",
+              "required": false,
+              "default": null,
+              "enum": [],
+              "description": "返回条数上限，必须为正整数"
+            }
+          ],
+          "examples": [
+            {
+              "title": "搜索包含 order 的表",
+              "query": {
+                "keyword": "order"
+              }
+            }
+          ],
+          "response": "扁平对象：success/data；data 为表节点数组"
+        },
+        {
+          "method": "GET",
+          "path": "/api/lineage-viewer/tables/{name}",
+          "contentType": null,
+          "parameters": [
+            {
+              "name": "name",
+              "in": "path",
+              "type": "string",
+              "required": true,
+              "default": null,
+              "enum": [],
+              "description": "表名，需 URL 编码"
+            }
+          ],
+          "examples": [
+            {
+              "title": "查看单表详情",
+              "query": {}
+            }
+          ],
+          "response": "扁平对象：success/data；data 含表节点、出入度、上游/下游表与产出该表的 SQL 列表"
+        },
+        {
+          "method": "GET",
+          "path": "/api/lineage-viewer/tables/{name}/lineage",
+          "contentType": null,
+          "parameters": [
+            {
+              "name": "name",
+              "in": "path",
+              "type": "string",
+              "required": true,
+              "default": null,
+              "enum": [],
+              "description": "焦点表名，需 URL 编码"
+            },
+            {
+              "name": "depth",
+              "in": "query",
+              "type": "integer",
+              "required": false,
+              "default": 6,
+              "enum": [],
+              "description": "向上游回溯的跳数上限，0 表示仅一层"
+            }
+          ],
+          "examples": [
+            {
+              "title": "取焦点表的上游闭包子图",
+              "query": {
+                "depth": 3
+              }
+            }
+          ],
+          "response": "扁平对象：success/data；data 为 {nodes,edges,focus,depth} 子图，可直接渲染"
+        },
+        {
+          "method": "GET",
+          "path": "/api/lineage-viewer/edges/detail",
+          "contentType": null,
+          "parameters": [
+            {
+              "name": "from",
+              "in": "query",
+              "type": "string",
+              "required": true,
+              "default": null,
+              "enum": [],
+              "description": "边起点表名"
+            },
+            {
+              "name": "to",
+              "in": "query",
+              "type": "string",
+              "required": true,
+              "default": null,
+              "enum": [],
+              "description": "边终点表名"
+            }
+          ],
+          "examples": [
+            {
+              "title": "查看某条边背后的全部 SQL",
+              "query": {
+                "from": "ods_order",
+                "to": "dwd_order"
+              }
+            }
+          ],
+          "response": "扁平对象：success/data；data 含 weight 与命中该关系的 SQL 明细"
+        },
+        {
+          "method": "GET",
+          "path": "/api/lineage-viewer/sqls/{name}",
+          "contentType": null,
+          "parameters": [
+            {
+              "name": "name",
+              "in": "path",
+              "type": "string",
+              "required": true,
+              "default": null,
+              "enum": [],
+              "description": "表名，返回产出该表的 SQL 明细"
+            }
+          ],
+          "examples": [
+            {
+              "title": "回溯产出某表的 SQL",
+              "query": {}
+            }
+          ],
+          "response": "扁平对象：success/data；data 为 SQL 记录数组（含 source/sql/inputTables/outputTables）"
+        },
+        {
+          "method": "POST",
+          "path": "/api/lineage-viewer/rebuild",
+          "contentType": "application/json",
+          "parameters": [
+            {
+              "name": "body",
+              "in": "body",
+              "type": "string",
+              "required": true,
+              "default": null,
+              "enum": [],
+              "description": "完整 JSON 数据（数组或 {records:[...]} 包装）"
+            }
+          ],
+          "examples": [
+            {
+              "title": "用新数据重建血缘图",
+              "body": [
+                {
+                  "name": "demo_sql",
+                  "inputTables": "ods_a,ods_b",
+                  "outputTables": "dwd_c"
+                }
+              ]
+            }
+          ],
+          "response": "扁平对象：success/data；data 为重建后的规模统计"
         }
       ]
     }
