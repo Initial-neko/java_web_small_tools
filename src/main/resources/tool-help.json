@@ -96,6 +96,17 @@
       "labels": [
         "时间转换"
       ]
+    },
+    {
+      "id": "process",
+      "title": "Java 进程管理",
+      "description": "监测服务端 Java 进程、搜索、刷新与手动强制结束",
+      "tools": [
+        "java-process-manager"
+      ],
+      "labels": [
+        "本机进程"
+      ]
     }
   ],
   "advancedPages": [
@@ -1639,6 +1650,68 @@
             }
           ],
           "response": "扁平对象：success/data；data 为重建后的规模统计"
+        }
+      ]
+    },
+    {
+      "name": "java-process-manager",
+      "title": "Java 进程管理",
+      "category": "process",
+      "summary": "服务所在 Windows 电脑的 Java 进程清单与安全强制结束",
+      "notes": [
+        "仅允许服务所在机器通过 localhost / 127.0.0.1 / [::1] 访问，并校验连接来源；远程 Web 客户端不能结束服务器进程。",
+        "每次打开页面获得本次运行的操作令牌。终止时还会核验 Origin、令牌、PID、进程创建时间和可执行文件，拒绝结束本工具自身。",
+        "仅识别 java.exe/javaw.exe；有 jps 时补充主类/Jar，JRE 无 jps 时仍显示 PID 和可执行文件。不会展示 JVM 启动敏感参数。",
+        "终止方式是 Windows TerminateProcess，属于强制结束；无 JVM Shutdown Hook 保证，可能丢失未保存数据。"
+      ],
+      "endpoints": [
+        {
+          "method": "GET",
+          "path": "/api/system/java-processes",
+          "contentType": null,
+          "parameters": [],
+          "examples": [
+            {
+              "title": "查看 Java 进程（仅允许本机 localhost）"
+            }
+          ],
+          "response": "{success,supported,message,token,processes:[{pid,name,main,executable,startTime,canKill,reason}]}"
+        },
+        {
+          "method": "POST",
+          "path": "/api/system/java-processes/{pid}/kill",
+          "contentType": "application/json",
+          "parameters": [
+            {
+              "name": "pid",
+              "in": "path",
+              "type": "integer",
+              "required": true,
+              "default": null,
+              "enum": [],
+              "description": "目标进程 PID"
+            },
+            {
+              "name": "startTime",
+              "in": "body",
+              "type": "integer",
+              "required": true,
+              "default": null,
+              "enum": [],
+              "description": "从 GET 返回的进程创建时间，防止 PID 复用"
+            },
+            {
+              "name": "X-Process-Token",
+              "in": "header",
+              "type": "string",
+              "required": true,
+              "default": null,
+              "enum": [],
+              "description": "从 GET 获取的操作令牌；还必须带合法的同源 Origin"
+            }
+          ],
+          "examples": [],
+          "response": "{success,message}；失败时返回 400/403/409/501"
         }
       ]
     }
