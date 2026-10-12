@@ -23,6 +23,7 @@ jobs:
       - name: Verify API example scripts
         run: |
           node --check src/main/resources/static/java-process-manager/app.js
+          node src/test/js/java-process-ui.test.cjs
           node src/test/js/task-ui.test.cjs
       - name: Verify lineage request lifecycle
         run: node src/test/js/lineage-ui.test.cjs

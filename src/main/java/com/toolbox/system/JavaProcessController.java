@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.net.InetAddress;
+import java.net.URI;
 import java.security.SecureRandom;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -94,12 +95,27 @@ public class JavaProcessController {
     }
 
     static boolean sameOrigin(HttpServletRequest req) {
+        if (req == null) return false;
         String origin = req.getHeader("Origin");
         if (origin == null) return false;
-        String host = req.getServerName();
-        if ("::1".equals(host)) host = "[::1]";
-        String expected = req.getScheme() + "://" + host + ":" + req.getServerPort();
-        return expected.equalsIgnoreCase(origin);
+        try {
+            URI value = new URI(origin);
+            String scheme = value.getScheme();
+            String host = value.getHost();
+            if (scheme == null || host == null || value.getRawUserInfo() != null
+                    || (value.getRawPath() != null && !value.getRawPath().isEmpty())
+                    || value.getRawQuery() != null || value.getRawFragment() != null) return false;
+            int defaultPort = "http".equalsIgnoreCase(scheme) ? 80
+                    : "https".equalsIgnoreCase(scheme) ? 443 : -1;
+            if (defaultPort < 0) return false;
+            int port = value.getPort() < 0 ? defaultPort : value.getPort();
+            return scheme.equalsIgnoreCase(req.getScheme())
+                    && host.replace("[", "").replace("]", "").equalsIgnoreCase(
+                    req.getServerName().replace("[", "").replace("]", ""))
+                    && port == req.getServerPort();
+        } catch (Exception ex) {
+            return false;
+        }
     }
 
     private static ResponseEntity<Map<String, Object>> failure(HttpStatus status, String message) {

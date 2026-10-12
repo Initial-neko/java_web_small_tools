@@ -34,3 +34,7 @@ API:
 6. Kill 成功后表格自动刷新；进程终止失败有错误提示，不允许误报成功。
 7. 离开页面后轮询停止；再次打开正常刷新，不出现重复计时器。
 8. CI Java 8 和 JS 检查通过；Windows 7/10 环境必须手动验收，Linux 只验证不可操作状态。
+
+同源校验按协议、主机和有效端口比较，支持浏览器省略 HTTP 80 / HTTPS 443；其他主机、协议、端口以及带路径、用户信息的伪造 Origin 仍拒绝。正文、路径、原因、状态统一至少 16px。
+
+前端行为回归：`node src/test/js/java-process-ui.test.cjs`。API 示例验收：专用本机服务启动后执行 `node scripts/verify-help-api.cjs http://127.0.0.1:8088`；导航目录按 `tool-help.json` 声明核对，不固定页面数。

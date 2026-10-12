@@ -13,6 +13,35 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class JavaProcessControllerTest {
     @Test
+    void acceptsSameOriginWithDefaultAndExplicitPorts() {
+        for (String[] value : new String[][] {
+                {"http", "localhost", "80", "http://localhost"},
+                {"http", "localhost", "80", "http://localhost:80"},
+                {"https", "localhost", "443", "https://localhost"},
+                {"http", "::1", "80", "http://[::1]"},
+                {"https", "[::1]", "443", "https://[::1]"},
+                {"http", "127.0.0.1", "8088", "http://127.0.0.1:8088"}}) {
+            MockHttpServletRequest req = request("127.0.0.1", value[1]);
+            req.setScheme(value[0]); req.setServerPort(Integer.parseInt(value[2]));
+            req.addHeader("Origin", value[3]);
+            assertTrue(JavaProcessController.sameOrigin(req), value[3]);
+        }
+    }
+
+    @Test
+    void rejectsOtherOriginsAndNonOriginUrls() {
+        for (String origin : new String[]{"http://localhost:8089", "https://localhost:8088",
+                "http://evil.example:8088", "http://localhost:8088.evil.example",
+                "http://user@localhost:8088", "http://localhost:8088/path",
+                "http://localhost:8088?query", "http://localhost:8088#fragment", "null", "bad url"}) {
+            MockHttpServletRequest req = request("127.0.0.1", "localhost");
+            req.addHeader("Origin", origin);
+            assertFalse(JavaProcessController.sameOrigin(req), origin);
+        }
+        assertFalse(JavaProcessController.sameOrigin(null));
+    }
+
+    @Test
     void detectsOnlyJavaAndJavaw() {
         assertTrue(JavaProcessService.isJavaExecutable("C:\\Program Files\\Java\\bin\\java.exe"));
         assertTrue(JavaProcessService.isJavaExecutable("C:/jdk/bin/JAVAW.EXE"));
