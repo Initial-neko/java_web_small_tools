@@ -51,6 +51,7 @@ function unmountHeavyTools() {
   if (window.LineageViewer) {
     try { window.LineageViewer.unmount(); } catch (e) { /* 忽略 */ }
   }
+  if (window.JavaProcessManager) window.JavaProcessManager.unmount();
 }
 function taskHeader() {
   return '<h2>'+escapeHtml(currentPage.title)+'</h2><p class="subtitle">'+escapeHtml(currentPage.description)+'</p>' +
@@ -59,6 +60,12 @@ function taskHeader() {
 }
 function renderMain() {
   const main=document.getElementById('main');
+  if (currentTool.name==='java-process-manager') {
+    main.innerHTML=taskHeader()+'<p class="server-note">这里管理的是运行 Web 服务的 Windows 本机 Java 进程，而非浏览器所在设备。出于安全考虑，必须通过本机 localhost 打开。</p><div id="jpm-container"></div><div id="apiHelp"></div>';
+    if (window.JavaProcessManager) window.JavaProcessManager.mount(document.getElementById('jpm-container'));
+    else document.getElementById('jpm-container').textContent='进程管理前端加载失败，请检查 /java-process-manager/app.js';
+    renderApiHelp(currentTool.name); return;
+  }
   if (currentTool.name==='system-info') {
     main.innerHTML=taskHeader()+'<p class="server-note">以下信息属于运行服务的机器。</p><div id="systemInfo">加载中…</div><div id="apiHelp"></div>';
     loadSystemInfo(); renderApiHelp(currentTool.name); return;
