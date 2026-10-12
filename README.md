@@ -9,6 +9,12 @@
 
 每项操作可展开“API 调用与参数说明”，查看参数、必填条件、默认值、JSON 请求体和可复制的 curl 示例。实体源码可直接复制或下载；API 原始响应可展开查看。
 
+### Web Java 进程管理（Windows）
+
+首页新增 **Java 进程管理** 任务：展示运行 Web 服务的本机 `java.exe/javaw.exe`、PID、启动时间和可执行路径；支持关键词过滤、3 秒刷新与手动强制结束。若安装 JDK，还可通过 `jps -l` 补充应用主类或 Jar 信息。
+
+访问 `http://localhost:8088`，选择「Java 进程管理」。进程管理接口仅允许本机 `localhost` 使用，强制结束需要二次确认、操作令牌以及 PID 创建时间校验；远程客户端无法通过此功能结束服务器进程。Linux/macOS 当前仅提示不支持。参见 [Web Java 进程管理与安全验收](docs/java-process-manager/README.md)。
+
 ### 通过 API 获取帮助
 
 ```sh

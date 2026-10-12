@@ -35,8 +35,9 @@ class ToolHelpApiTest {
 
     @Test void shouldSeparateTaskNavigationFromCapabilityDiscovery() throws Exception {
         JsonNode catalog = read("/api/help");
-        // 7 = json / text / entity / sql / metric / lineage / time
-        assertEquals(7, catalog.path("pages").size());
+        // 8 = seven original tasks + Web Java process management
+        assertEquals(8, catalog.path("pages").size());
+        assertTrue(catalog.path("pages").toString().contains("java-process-manager"));
         Set<String> documented = new HashSet<String>();
         for (JsonNode tool : catalog.path("tools")) documented.add(tool.path("name").asText());
         for (JsonNode tool : read("/api/tools")) assertTrue(documented.contains(tool.path("name").asText()));

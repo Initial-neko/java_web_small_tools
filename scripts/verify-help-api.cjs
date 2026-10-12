@@ -4,7 +4,8 @@ const base=new URL(process.argv[2]||'http://127.0.0.1:8088');
 assert(['127.0.0.1','localhost','[::1]'].includes(base.hostname),'Acceptance runner only calls a local test service');
 async function main() {
   const catalog=await (await fetch(base.origin+'/api/help')).json();
-  assert.equal(catalog.pages.length,7);
+  const declared=JSON.parse(fs.readFileSync('src/main/resources/tool-help.json','utf8'));
+  assert.deepEqual(catalog.pages,declared.pages,'Running service must expose the declared task catalog');
   const discovery=await (await fetch(base.origin+'/api/tools')).json();
   assert(discovery.every(t=>catalog.tools.some(h=>h.name===t.name)));
   const unknown=await fetch(base.origin+'/api/tools/not-a-tool/help'); assert.equal(unknown.status,404);

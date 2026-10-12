@@ -17,7 +17,7 @@ function saveDraft() {
 function resetView() { requestSequence++; document.getElementById('main').scrollTop = 0; }
 function goHome() {
   if (!helpCatalog) return;
-  saveDraft(); currentTool = null; currentPage = null; resetView(); renderToolList();
+  saveDraft(); unmountHeavyTools(); currentTool = null; currentPage = null; resetView(); renderToolList();
   document.getElementById('main').innerHTML = '<h2>选择你要完成的任务</h2><p class="subtitle">常用工具按任务聚合。数据库生成和诊断位于高级工具；所有 HTTP 能力可查阅 API 帮助。</p>' +
     '<input class="task-search" type="search" aria-label="搜索任务" placeholder="搜索任务、输入来源或工具名称" oninput="filterTasks(this.value)">' +
     '<div class="task-grid" id="taskCards">' + helpCatalog.pages.map(p =>
@@ -51,6 +51,7 @@ function unmountHeavyTools() {
   if (window.LineageViewer) {
     try { window.LineageViewer.unmount(); } catch (e) { /* 忽略 */ }
   }
+  if (window.JavaProcessManager) window.JavaProcessManager.unmount();
 }
 function taskHeader() {
   return '<h2>'+escapeHtml(currentPage.title)+'</h2><p class="subtitle">'+escapeHtml(currentPage.description)+'</p>' +
@@ -59,6 +60,12 @@ function taskHeader() {
 }
 function renderMain() {
   const main=document.getElementById('main');
+  if (currentTool.name==='java-process-manager') {
+    main.innerHTML=taskHeader()+'<p class="server-note">这里管理的是运行 Web 服务的 Windows 本机 Java 进程，而非浏览器所在设备。出于安全考虑，必须通过本机 localhost 打开。</p><div id="jpm-container"></div><div id="apiHelp"></div>';
+    if (window.JavaProcessManager) window.JavaProcessManager.mount(document.getElementById('jpm-container'));
+    else document.getElementById('jpm-container').textContent='进程管理前端加载失败，请检查 /java-process-manager/app.js';
+    renderApiHelp(currentTool.name); return;
+  }
   if (currentTool.name==='system-info') {
     main.innerHTML=taskHeader()+'<p class="server-note">以下信息属于运行服务的机器。</p><div id="systemInfo">加载中…</div><div id="apiHelp"></div>';
     loadSystemInfo(); renderApiHelp(currentTool.name); return;
@@ -183,7 +190,7 @@ function renderApiHelp(name) {
   root.innerHTML='<details class="api-help"><summary>API 调用与参数说明</summary>'+helpHtml(help)+'</details>'; bindCopyExamples(root);
 }
 function showApiCatalog() {
-  saveDraft(); currentTool=null; currentPage=null; resetView(); renderToolList();
+  saveDraft(); unmountHeavyTools(); currentTool=null; currentPage=null; resetView(); renderToolList();
   const main=document.getElementById('main');
   main.innerHTML='<h2>API 帮助</h2><p class="subtitle">所有 HTTP 能力的调用说明。前端任务聚合不会改变原有 API。</p><p><a href="/api/help" target="_blank" rel="noopener">GET /api/help · 完整机器可读帮助</a></p><p>'+escapeHtml(helpCatalog.responseContract)+'</p>'+helpCatalog.tools.map(t=>'<details class="api-help"><summary>'+escapeHtml(t.title)+' · '+escapeHtml(t.name)+'</summary>'+helpHtml(t)+'</details>').join('');
   bindCopyExamples(main);
