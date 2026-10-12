@@ -100,7 +100,7 @@ public class JavaProcessService {
             throw new SecurityException("不允许终止工具自身进程");
         }
         final int flags = WinNT.PROCESS_TERMINATE
-                | WinNT.PROCESS_QUERY_LIMITED_INFORMATION | WinNT.SYNCHRONIZE;
+                | WinNT.PROCESS_QUERY_LIMITED_INFORMATION | WinNT.PROCESS_SYNCHRONIZE;
         WinNT.HANDLE handle = Kernel32.INSTANCE.OpenProcess(flags, false, pid);
         if (handle == null) {
             throw new IllegalStateException("无法打开目标进程（已退出或权限不足），错误码 "
@@ -185,10 +185,14 @@ public class JavaProcessService {
         String home = System.getProperty("java.home", "");
         File[] candidates = {
                 new File(home, "bin/jps.exe"),
-                new File(home, "../bin/jps.exe"),
-                new File(System.getenv("JAVA_HOME") == null ? "" : System.getenv("JAVA_HOME"), "bin/jps.exe")
+                new File(home, "../bin/jps.exe")
         };
         for (File f : candidates) if (f.isFile()) return f;
+        String envHome = System.getenv("JAVA_HOME");
+        if (envHome != null && !envHome.trim().isEmpty()) {
+            File fromEnv = new File(envHome, "bin/jps.exe");
+            if (fromEnv.isFile()) return fromEnv;
+        }
         return null;
     }
 
